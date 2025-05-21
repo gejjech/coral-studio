@@ -72,7 +72,8 @@
 										break;
 									case 'ThreadList':
 										for (const thread of data.threads) {
-											socket.threads.set(thread.id, { messages: [], ...thread });
+											socket.threads.set(thread.id, { ...thread, messages: undefined });
+											socket.messages.set(thread.id, thread.messages ?? []);
 										}
 										break;
 									case 'AgentList':
@@ -89,18 +90,18 @@
 											id: data.id,
 											name: data.name,
 											participants: data.participants,
-											messages: [],
 											summary: data.summary,
 											creatorId: data.creatorId,
 											isClosed: data.isClosed
 										});
+										socket.messages.set(data.id, data.messages ?? []);
 										break;
 									case 'org.coralprotocol.coralserver.session.Event.MessageSent':
-										const thread = socket.threads.get(data.message.threadId);
-										if (thread) {
+										const messages = socket.messages.get(data.message.threadId);
+										if (messages) {
 											console.log('message setn');
-											thread.messages.push(data.message);
-											socket.threads.set(thread.id, thread);
+											messages.push(data.message);
+											socket.messages.set(data.message.threadId, messages);
 										} else {
 											console.warn('uh oh');
 										}

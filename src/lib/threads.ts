@@ -16,7 +16,6 @@ export type Thread = {
 	summary?: string;
 	participants: string[];
 	isClosed: boolean;
-	messages: Message[];
 };
 
 export type Agent = {
@@ -34,4 +33,5 @@ export const socketCtx = new Context<{
 	agentId: string | null;
 	agents: SvelteMap<string, Agent>;
 	threads: SvelteMap<string, Thread>;
+	messages: SvelteMap<string, Message[]>;
 }>('websocket');

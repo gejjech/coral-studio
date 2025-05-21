@@ -11,6 +11,7 @@
 
 	let conn = socketCtx.get();
 	let thread = $derived(conn.threads.get(page.params['thread']));
+	let messages = $derived(conn.messages.get(page.params['thread']));
 
 	let message = $state('');
 </script>
@@ -36,7 +37,7 @@
 		<main class="flex flex-1 flex-col gap-4 p-4">
 			<ScrollArea class="flex-grow">
 				<div class="flex flex-grow flex-col gap-4">
-					{#each thread?.messages ?? [] as message}
+					{#each messages ?? [] as message (message.id)}
 						<div class="bg-muted/50 hw-full rounded-lg">
 							<p>{new Date(message.timestamp).toTimeString()}</p>
 							<header class="flex flex-row gap-1">
@@ -45,11 +46,9 @@
 								</span>
 								<span>></span>
 								{#each message.mentions as mention}
-									{#if mention !== message.senderId}
-										<span class="bg-primary text-primary-foreground rounded-md px-1 py-0">
-											{mention}
-										</span>
-									{/if}
+									<span class="bg-primary text-primary-foreground rounded-md px-1 py-0">
+										{mention}
+									</span>
 								{/each}
 							</header>
 							<p>{message.content}</p>
