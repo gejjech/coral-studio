@@ -12,7 +12,7 @@
 	import { useDebounce, useIntersectionObserver } from 'runed';
 	import { onMount } from 'svelte';
 	import Message from './Message.svelte';
-	import { afterNavigate } from '$app/navigation';
+	import { afterNavigate, goto } from '$app/navigation';
 	import { cn } from '$lib/utils';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { Users } from '@lucide/svelte';
@@ -22,6 +22,12 @@
 	let conn = $derived(ctx.session);
 	let thread = $derived(conn?.threads[page.params['thread']]);
 	let messages = $derived(conn?.messages[page.params['thread']]);
+
+	onMount(() => {
+		if (!thread) {
+			goto('/');
+		}
+	});
 
 	let message = $state('');
 
