@@ -11,8 +11,11 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+	import Badge from './ui/badge/badge.svelte';
+	import { cn } from '$lib/utils';
 
-	let conn = socketCtx.get();
+	let ctx = socketCtx.get();
+	let conn = $derived(ctx.session);
 
 	let threadName = $state('');
 	let participants: string[] = $state([]);
@@ -45,7 +48,11 @@
 
 			<Dialog.Root>
 				<Dialog.Trigger
-					disabled={!conn.appId || !conn.host || !conn.privKey || !conn.session || !conn.agentId}
+					disabled={!conn?.appId ||
+						!conn?.host ||
+						!conn?.privKey ||
+						!conn?.session ||
+						!conn?.agentId}
 				>
 					{#snippet child({ props })}
 						<Sidebar.GroupAction {...props} title="Create Thread">
@@ -68,10 +75,10 @@
 							<Select.Root type="multiple" bind:value={participants}>
 								<Select.Trigger class="w-[180px]"></Select.Trigger>
 								<Select.Content>
-									{#each conn.agents.values() as agent}
+									{#each Object.values(conn?.agents ?? {}) as agent}
 										<Select.Item value={agent.id}>{agent.id}</Select.Item>
 									{/each}
-									{#if conn.agents.size == 0}
+									{#if Object.values(conn?.agents ?? {}).length == 0}
 										<p class="text-muted-foreground text-center text-sm">No agents registered.</p>
 									{/if}
 								</Select.Content>
@@ -83,7 +90,13 @@
 						<Button
 							type="submit"
 							onclick={() => {
-								if (!conn.appId || !conn.host || !conn.privKey || !conn.session || !conn.agentId)
+								if (
+									!conn?.appId ||
+									!conn?.host ||
+									!conn?.privKey ||
+									!conn?.session ||
+									!conn?.agentId
+								)
 									return;
 								fetch(
 									`http://${conn.host}/debug/${conn.appId}/${conn.privKey}/${conn.session}/${conn.agentId}/thread/`,
@@ -105,11 +118,14 @@
 			</Dialog.Root>
 			<Sidebar.GroupContent>
 				<Sidebar.Menu>
-					{#each conn.threads.values() as thread (thread.id)}
+					{#each Object.values(conn?.threads ?? {}) as thread (thread.id)}
 						<Sidebar.MenuItem>
 							<Sidebar.MenuButton class="truncate">
 								{#snippet child({ props })}
-									<a href={`/thread/${thread.id}`} {...props}>{thread.name}</a>
+									<a href={`/thread/${thread.id}`} {...props}
+										>{thread.name}
+										<Badge class={cn(thread.unread == 0 && 'hidden')}>{thread.unread}</Badge>
+									</a>
 								{/snippet}
 							</Sidebar.MenuButton>
 						</Sidebar.MenuItem>

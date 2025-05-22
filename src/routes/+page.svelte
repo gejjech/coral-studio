@@ -5,6 +5,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Separator } from '$lib/components/ui/separator';
 	import * as Sidebar from '$lib/components/ui/sidebar';
+	import { Session } from '$lib/session.svelte';
 	import { socketCtx } from '$lib/threads';
 	import { PersistedState } from 'runed';
 	import { toast } from 'svelte-sonner';
@@ -28,92 +29,20 @@
 				<Input placeholder="session" bind:value={session.current} />
 				<Button
 					onclick={() => {
-						if (socket.socket) {
-							socket.socket.close();
-							socket.socket = null;
+						if (socket.session) {
+							socket.session.close();
+							socket.session = null;
 						} else {
-							socket.socket = new WebSocket(
-								`ws://${host.current}/debug/${appId.current}/${privKey.current}/${session.current}/?timeout=10000`
-							);
-							socket.host = host.current;
-							socket.privKey = privKey.current;
-							socket.appId = appId.current;
-							socket.session = session.current;
-
-							socket.socket.onopen = () => {
-								toast.success('WS connected.');
-							};
-							socket.socket.onerror = (e) => {
-								toast.error(`WS error: ${e}`);
-								socket.socket?.close();
-								socket.socket = null;
-							};
-							socket.socket.onclose = () => {
-								socket.host = null;
-								socket.privKey = null;
-								socket.appId = null;
-								socket.session = null;
-								socket.socket = null;
-								socket.threads.clear();
-								socket.agents.clear();
-							};
-							socket.socket.onmessage = (ev) => {
-								let data = null;
-								try {
-									data = JSON.parse(ev.data);
-								} catch (e) {
-									toast.warning(`ws: '${ev.data}'`);
-									return;
-								}
-
-								switch (data.type ?? '') {
-									case 'DebugAgentRegistered':
-										socket.agentId = data.id;
-										break;
-									case 'ThreadList':
-										for (const thread of data.threads) {
-											socket.threads.set(thread.id, { ...thread, messages: undefined });
-											socket.messages.set(thread.id, thread.messages ?? []);
-										}
-										break;
-									case 'AgentList':
-										for (const agent of data.agents) {
-											socket.agents.set(agent.id, agent);
-										}
-										break;
-									case 'org.coralprotocol.coralserver.session.Event.AgentRegistered':
-										socket.agents.set(data.agent.id, data.agent);
-										break;
-									case 'org.coralprotocol.coralserver.session.Event.ThreadCreated':
-										console.log('new thread');
-										socket.threads.set(data.id, {
-											id: data.id,
-											name: data.name,
-											participants: data.participants,
-											summary: data.summary,
-											creatorId: data.creatorId,
-											isClosed: data.isClosed
-										});
-										socket.messages.set(data.id, data.messages ?? []);
-										break;
-									case 'org.coralprotocol.coralserver.session.Event.MessageSent':
-										const messages = socket.messages.get(data.message.threadId);
-										if (messages) {
-											console.log('message setn');
-											messages.push(data.message);
-											socket.messages.set(data.message.threadId, messages);
-										} else {
-											console.warn('uh oh');
-										}
-										break;
-								}
-
-								console.log({ data });
-							};
+							socket.session = new Session({
+								host: host.current,
+								session: session.current,
+								privKey: privKey.current,
+								appId: appId.current
+							});
 						}
 					}}
 				>
-					{socket.socket === null ? 'Connect' : 'Disconnect'}
+					{socket.session === null ? 'Connect' : 'Disconnect'}
 				</Button>
 			</header>
 		</main>

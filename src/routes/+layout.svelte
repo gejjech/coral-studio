@@ -7,16 +7,7 @@
 	let { children } = $props();
 
 	let socket = $state({
-		host: null,
-		appId: null,
-		privKey: null,
-		session: null,
-		agentId: null,
-
-		socket: null,
-		threads: new SvelteMap<string, Thread>(),
-		messages: new SvelteMap<string, Message[]>(),
-		agents: new SvelteMap<string, Agent>()
+		session: null
 	});
 	socketCtx.set(socket);
 </script>

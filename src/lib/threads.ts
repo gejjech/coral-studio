@@ -1,5 +1,5 @@
 import { Context } from 'runed';
-import { SvelteMap } from 'svelte/reactivity';
+import type { Session } from './session.svelte';
 export type Message = {
 	id: string;
 	threadId: string;
@@ -24,14 +24,5 @@ export type Agent = {
 };
 
 export const socketCtx = new Context<{
-	socket: WebSocket | null;
-
-	host: string | null;
-	appId: string | null;
-	privKey: string | null;
-	session: string | null;
-	agentId: string | null;
-	agents: SvelteMap<string, Agent>;
-	threads: SvelteMap<string, Thread>;
-	messages: SvelteMap<string, Message[]>;
+	session: Session | null;
 }>('websocket');
