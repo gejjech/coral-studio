@@ -7,12 +7,15 @@
 	import ScrollArea from '$lib/components/ui/scroll-area/scroll-area.svelte';
 	import { Separator } from '$lib/components/ui/separator';
 	import * as Sidebar from '$lib/components/ui/sidebar';
+	import * as Resizable from '$lib/components/ui/resizable';
 	import { socketCtx } from '$lib/threads';
 	import { useDebounce, useIntersectionObserver } from 'runed';
 	import { onMount } from 'svelte';
 	import Message from './Message.svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { cn } from '$lib/utils';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import { Users } from '@lucide/svelte';
 
 	let ctx = socketCtx.get();
 	let conn = $derived(ctx.session);
@@ -20,6 +23,8 @@
 	let messages = $derived(conn?.messages[page.params['thread']]);
 
 	let message = $state('');
+
+	let memberListOpen = $state(true);
 
 	let root = $state<HTMLElement | null>(null);
 	afterNavigate(useDebounce(() => thread && (thread.unread = 0), 1000));
@@ -34,7 +39,7 @@
 			>
 				<Sidebar.Trigger class="-ml-1" />
 				<Separator orientation="vertical" class="mr-2 h-4" />
-				<Breadcrumb.Root>
+				<Breadcrumb.Root class="flex-grow">
 					<Breadcrumb.List>
 						<Breadcrumb.Item class="hidden md:block">
 							<Breadcrumb.Link>Threads</Breadcrumb.Link>
@@ -45,63 +50,84 @@
 						</Breadcrumb.Item>
 					</Breadcrumb.List>
 				</Breadcrumb.Root>
+				<Button
+					variant="ghost"
+					size="icon"
+					onclick={() => {
+						memberListOpen = !memberListOpen;
+					}}
+				>
+					<Users />
+				</Button>
 			</header>
-			<main class="flex flex-grow flex-col gap-0 p-4">
-				<ScrollArea class="flex-grow" bind:ref={root}>
-					<div class="flex flex-grow flex-col gap-0">
-						{#each messages ?? [] as message, i (message.id)}
-							<div
-								class={cn(
-									'border-t border-transparent py-1',
-									i == (messages?.length ?? 0) - thread.unread && 'border-red-400'
-								)}
-							>
-								<Message {message} />
+			<Resizable.PaneGroup direction="horizontal">
+				<Resizable.Pane class="flex h-full">
+					<main class="flex flex-grow flex-col gap-0 p-4">
+						<ScrollArea class="flex-grow" bind:ref={root}>
+							<div class="flex flex-grow flex-col gap-0">
+								{#each messages ?? [] as message, i (message.id)}
+									<div
+										class={cn(
+											'border-t border-transparent py-1',
+											i == (messages?.length ?? 0) - thread.unread && 'border-red-400'
+										)}
+									>
+										<Message {message} />
+									</div>
+								{/each}
 							</div>
-						{/each}
-					</div>
-				</ScrollArea>
-				<footer class="flex flex-row">
-					<Input
-						placeholder="send a message"
-						disabled={!thread ||
-							!conn?.appId ||
-							!conn?.host ||
-							!conn?.privKey ||
-							!conn?.session ||
-							!conn?.agentId}
-						bind:value={message}
-						onkeydown={(e) => {
-							if (
-								!thread ||
-								!conn?.appId ||
-								!conn?.host ||
-								!conn?.privKey ||
-								!conn?.session ||
-								!conn?.agentId
-							)
-								return;
-							if (e.key == 'Enter') {
-								fetch(
-									`http://${conn.host}/debug/${conn.appId}/${conn.privKey}/${conn.session}/${conn.agentId}/thread/sendMessage/`,
-									{
-										method: 'POST',
-										headers: {
-											'Content-Type': 'application/json'
-										},
-										body: JSON.stringify({
-											threadId: thread.id,
-											content: message,
-											mentions: thread.participants.filter((p) => p !== conn.agentId)
-										})
+						</ScrollArea>
+						<footer class="flex flex-row">
+							<Input
+								placeholder="send a message"
+								disabled={!thread ||
+									!conn?.appId ||
+									!conn?.host ||
+									!conn?.privKey ||
+									!conn?.session ||
+									!conn?.agentId}
+								bind:value={message}
+								onkeydown={(e) => {
+									if (
+										!thread ||
+										!conn?.appId ||
+										!conn?.host ||
+										!conn?.privKey ||
+										!conn?.session ||
+										!conn?.agentId
+									)
+										return;
+									if (e.key == 'Enter') {
+										fetch(
+											`http://${conn.host}/debug/${conn.appId}/${conn.privKey}/${conn.session}/${conn.agentId}/thread/sendMessage/`,
+											{
+												method: 'POST',
+												headers: {
+													'Content-Type': 'application/json'
+												},
+												body: JSON.stringify({
+													threadId: thread.id,
+													content: message,
+													mentions: thread.participants.filter((p) => p !== conn.agentId)
+												})
+											}
+										);
+										message = '';
 									}
-								);
-								message = '';
-							}
-						}}
-					/>
-				</footer>
-			</main>
+								}}
+							/>
+						</footer>
+					</main>
+				</Resizable.Pane>
+				{#if memberListOpen}
+					<Resizable.Handle withHandle />
+					<Resizable.Pane maxSize={60} minSize={5} defaultSize={20} class="flex flex-col gap-2 p-2">
+						{#each thread.participants as member}
+							<div class="truncate rounded-md border px-2 py-1">{member}</div>
+						{/each}
+					</Resizable.Pane>
+				{/if}
+			</Resizable.PaneGroup>
 		</Sidebar.Inset>
 	</Sidebar.Provider>
 {/if}
