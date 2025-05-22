@@ -15,6 +15,7 @@
 
 	let senderColor = $derived(stringToColor(message.senderId));
 	let date = $derived(new Date(message.timestamp));
+	let mentions = $derived(message.mentions ?? []);
 </script>
 
 <Card.Root class={cn('gap-2 py-4', className)}>
@@ -26,7 +27,7 @@
 			{message.senderId}
 		</span>
 		<span class="w-max">-></span>
-		{#each message.mentions as mention}
+		{#each mentions as mention}
 			{@const mentionColor = stringToColor(mention)}
 			<span
 				class={cn(
@@ -38,6 +39,9 @@
 				{mention}
 			</span>
 		{/each}
+		{#if mentions.length == 0}
+			<span class="text-muted-foreground">nobody</span>
+		{/if}
 		<p class="flex-grow text-right">
 			{`${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`}
 		</p>
