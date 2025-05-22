@@ -16,6 +16,7 @@
 	import { cn } from '$lib/utils';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { Users } from '@lucide/svelte';
+	import { pickTextColor, stringToColor } from '$lib/color';
 
 	let ctx = socketCtx.get();
 	let conn = $derived(ctx.session);
@@ -123,7 +124,13 @@
 					<Resizable.Handle withHandle />
 					<Resizable.Pane maxSize={60} minSize={5} defaultSize={20} class="flex flex-col gap-2 p-2">
 						{#each thread.participants as member}
-							<div class="truncate rounded-md border px-2 py-1">{member}</div>
+							{@const memberColor = stringToColor(member)}
+							<div
+								class={cn('truncate rounded-md border px-2 py-1', pickTextColor(memberColor))}
+								style={`background-color: ${memberColor}; border-color: ${memberColor}55;`}
+							>
+								{member}
+							</div>
 						{/each}
 					</Resizable.Pane>
 				{/if}

@@ -1,39 +1,9 @@
 <script lang="ts">
+	import { pickTextColor, stringToColor } from '$lib/color';
 	import * as Card from '$lib/components/ui/card';
 	import type { Message } from '$lib/threads';
 	import { cn } from '$lib/utils';
 	import { ArrowRight, ArrowRightIcon } from '@lucide/svelte';
-
-	function hexToRgb(hex: string) {
-		var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-		return result
-			? {
-					r: parseInt(result[1], 16),
-					g: parseInt(result[2], 16),
-					b: parseInt(result[3], 16)
-				}
-			: null;
-	}
-	const stringToColor = (string: string) => {
-		let hash = 0;
-		for (let i = 0; i < string.length; i++) {
-			hash = string.charCodeAt(i) + ((hash << 5) - hash);
-		}
-		let color = '#';
-		for (let i = 0; i < 3; i++) {
-			let value = (hash >> (i * 8)) & 0xff;
-			color += ('00' + value.toString(16)).substr(-2);
-		}
-		return color;
-	};
-
-	const pickTextColor = (bg: string) => {
-		const rgb = hexToRgb(bg);
-		if (!rgb) return null;
-		const { r, g, b } = rgb;
-		const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-		return yiq < 128 ? 'text-primary-foreground' : 'text-primary';
-	};
 
 	let {
 		message,
