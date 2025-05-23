@@ -25,7 +25,7 @@ jobs:
       - name: Restore and save Nix store and npm cache
         uses: nix-community/cache-nix-action@v6
         with:
-          primary-key: build-${{ runner.os }}-${{ hashFiles('pnpm-lock.json', '.npmrc', 'package.json', 'flake.nix', 'flake.lock') }}
+          primary-key: build-${{ runner.os }}-${{ hashFiles('yarn.lock', '.npmrc', 'package.json', 'flake.nix', 'flake.lock') }}
           # do purge caches
           purge: true
           # purge all versions of the cache

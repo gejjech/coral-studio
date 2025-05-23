@@ -27,32 +27,16 @@
       system,
     }: let
       packageJson = nixpkgs.lib.importJSON ./package.json;
-      app-src = pkgs.stdenv.mkDerivation {
-        pname = packageJson.name;
-        inherit (packageJson) version;
+      app-src = pkgs.mkYarnPackage {
+        inherit (packageJson) name version;
         src = ./.;
-
-        nativeBuildInputs = [
-          pkgs.nodejs
-          pkgs.pnpm.configHook
-          pkgs.typescript
-        ];
+        packageJson = ./package.json;
+        yarnLock = ./yarn.lock;
 
         buildPhase = ''
-          runHook preBuild
-          pnpm --offline build
-          runHook postBuild
+          yarn --offline --frozen-lockfile build
         '';
-
-        installPhase = ''
-          mkdir -p ''$out
-          cp -r ./build/* ''$out
-        '';
-
-        pnpmDeps = pkgs.pnpm.fetchDeps {
-          inherit (self.packages.${system}.app-src) pname version src;
-          hash = "sha256-r4x0EJ3MMe5krrinlj32oGlrFT/vXeQJhBVzsrlKRSA=";
-        };
+        distPhase = "true";
       };
     in rec {
       inherit app-src;
@@ -60,7 +44,7 @@
         inherit (packageJson) name;
         runtimeInputs = [app-src pkgs.nodejs];
         text = ''
-          ${pkgs.nodejs}/bin/node ${app-src}/index.js
+          ${pkgs.nodejs}/bin/node ${app-src}/libexec/${packageJson.name}/deps/${packageJson.name}/build
         '';
       };
       docker = pkgs.dockerTools.buildLayeredImage {
