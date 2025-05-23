@@ -1,4 +1,9 @@
 # coral-dbg
+## Usage
+```bash
+docker run -p 3000:3000 ghcr.io/coral-protocol/coral-dbg
+```
+
 ## Developing
 
 Install dependencies with `pnpm install`, then start a dev server:
