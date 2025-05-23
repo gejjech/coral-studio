@@ -2,21 +2,12 @@
   inputs = {
     # nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     systems.url = "github:nix-systems/default";
-    treefmt-nix = {
-      url = "github:numtide/treefmt-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    flake-compat = {
-      url = "github:edolstra/flake-compat";
-      flake = false;
-    };
   };
 
   outputs = {
     self,
     systems,
     nixpkgs,
-    treefmt-nix,
     ...
   } @ inputs: let
     eachSystem = f:
@@ -30,7 +21,6 @@
             inherit system;
           }
       );
-    treefmtEval = eachSystem ({pkgs, ...}: treefmt-nix.lib.evalModule pkgs ./treefmt.nix);
   in {
     packages = eachSystem ({
       pkgs,
@@ -86,11 +76,6 @@
     });
     devShells = eachSystem ({pkgs, ...}: {
       default = pkgs.mkShell {
-        nativeBuildInputs = with pkgs; [
-          clang
-          # Use mold when we are runnning in Linux
-          (lib.optionals stdenv.isLinux mold)
-        ];
         buildInputs = with pkgs; [
           nodejs
           corepack
@@ -103,11 +88,6 @@
           prettierd
         ];
       };
-    });
-    formatter = eachSystem ({pkgs, ...}: treefmtEval.${pkgs.system}.config.build.wrapper);
-
-    checks = eachSystem ({pkgs, ...}: {
-      formatting = treefmtEval.${pkgs.system}.config.build.check self;
     });
   };
 }
