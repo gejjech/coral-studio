@@ -87,12 +87,12 @@ export class Session {
 					this.messages[data.id] = data.messages ?? [];
 					break;
 				case 'org.coralprotocol.coralserver.session.Event.MessageSent':
-					if (data.message.threadId in this.messages) {
+					if (data.threadId in this.messages) {
 						console.log('message setn');
-						this.messages[data.message.threadId].push(data.message);
-						this.threads[data.message.threadId].unread += 1;
+						this.messages[data.threadId].push(data.message);
+						this.threads[data.threadId].unread += 1;
 					} else {
-						console.warn('uh oh');
+						console.warn('uh oh', { data: data, messages: this.messages });
 					}
 					break;
 			}
