@@ -53,7 +53,7 @@
 						</Breadcrumb.Item>
 						<Breadcrumb.Separator class="hidden md:block" />
 						<Breadcrumb.Item>
-							<Breadcrumb.Page>{thread.name} {thread.unread}</Breadcrumb.Page>
+							<Breadcrumb.Page>{thread.name} {thread.id}</Breadcrumb.Page>
 						</Breadcrumb.Item>
 					</Breadcrumb.List>
 				</Breadcrumb.Root>
