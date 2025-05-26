@@ -42,7 +42,7 @@
 		{#if mentions.length == 0}
 			<span class="text-muted-foreground">nobody</span>
 		{/if}
-		<p class="flex-grow text-right">
+		<p class="flex-grow text-right" title={message.timestamp?.toString() ?? 'null'}>
 			{`${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`}
 		</p>
 	</Card.Header>
