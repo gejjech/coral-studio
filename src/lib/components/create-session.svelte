@@ -33,6 +33,8 @@
 	import { Session } from '$lib/session.svelte';
 	import { toast } from 'svelte-sonner';
 	import TwostepButton from './twostep-button.svelte';
+	import ModalCollapsible from './modal-collapsible.svelte';
+	import Separator from './ui/separator/separator.svelte';
 
 	let ctx = socketCtx.get();
 
@@ -91,6 +93,36 @@
 				});
 			})
 	);
+
+	const importFromJson = (text: string) => {
+		const data: { agentGraph: { agents: { [name: string]: Agent } } } = JSON.parse(text);
+		if (
+			!('agentGraph' in data) ||
+			typeof data.agentGraph !== 'object' ||
+			!data.agentGraph ||
+			!('agents' in data.agentGraph) ||
+			typeof data.agentGraph.agents !== 'object' ||
+			!data.agentGraph.agents
+		) {
+			return;
+		}
+		// TODO(alan): proper validation (e.g zod)
+		graph.agents = [];
+		const importAgents = data.agentGraph.agents;
+		for (const [name, agent] of Object.entries(importAgents)) {
+			const newAgent: RegistryAgent & { name: string } = {
+				name,
+				id: agent.agentType,
+				blocking: agent.blocking,
+				// TODO (alan): handle when this lookup fails
+				options: agents[agent.agentType].options
+			};
+			for (const [oName, opt] of Object.entries(agent.options)) {
+				newAgent.options[oName].value = opt as any;
+			}
+			graph.agents.push(newAgent);
+		}
+	};
 </script>
 
 <Dialog.Root bind:open>
@@ -100,71 +132,15 @@
 			<Dialog.Description>Create a new session.</Dialog.Description>
 		</Dialog.Header>
 		<ScrollArea class="-mr-4">
-			<div class="grid gap-4 py-4 pr-4">
-				<div class="flex flex-col gap-4">
-					<section class="flex flex-row gap-2">
-						<Label class="text-right">Agents</Label>
-						<ClipboardImportDialog
-							onImport={(text) => {
-								const data: { agentGraph: { agents: { [name: string]: Agent } } } =
-									JSON.parse(text);
-								if (
-									!('agentGraph' in data) ||
-									typeof data.agentGraph !== 'object' ||
-									!data.agentGraph ||
-									!('agents' in data.agentGraph) ||
-									typeof data.agentGraph.agents !== 'object' ||
-									!data.agentGraph.agents
-								) {
-									return;
-								}
-								// TODO(alan): proper validation (e.g zod)
-								graph.agents = [];
-								const importAgents = data.agentGraph.agents;
-								for (const [name, agent] of Object.entries(importAgents)) {
-									const newAgent: RegistryAgent & { name: string } = {
-										name,
-										id: agent.agentType,
-										blocking: agent.blocking,
-										// TODO (alan): handle when this lookup fails
-										options: agents[agent.agentType].options
-									};
-									for (const [oName, opt] of Object.entries(agent.options)) {
-										newAgent.options[oName].value = opt as any;
-									}
-									graph.agents.push(newAgent);
-								}
-							}}
-						>
-							{#snippet child({ props })}
-								<Button {...props} variant="outline"><ClipboardCopy /></Button>
-							{/snippet}
-						</ClipboardImportDialog>
-						<Combobox
-							side="right"
-							align="start"
-							options={Object.keys(agents)}
-							searchPlaceholder="Search agents..."
-							onValueChange={(value) => {
-								graph.agents.push(
-									JSON.parse(
-										JSON.stringify({
-											...agents[value],
-											name: `agent-${graph.agents.length + 1}`
-										})
-									)
-								);
-							}}
-						>
-							{#snippet trigger({ props })}
-								<Button {...props} variant="outline" size="icon"><PlusIcon /></Button>{/snippet}
-							{#snippet option({ option })}
-								{option}
-							{/snippet}
-						</Combobox>
-					</section>
-
-					<ul>
+			<section class="flex flex-col gap-2">
+				<ClipboardImportDialog onImport={importFromJson}>
+					{#snippet child({ props })}
+						<Button {...props} variant="outline" class="w-fit">Import <ClipboardCopy /></Button>
+					{/snippet}
+				</ClipboardImportDialog>
+				<Separator class="mt-2" />
+				<ModalCollapsible title="Agents">
+					<ul class="flex flex-col gap-1">
 						{#each graph.agents as agent, i}
 							<Collapsible.Root class="group/collapsible" open={true}>
 								<div class="flex flex-row items-center gap-1">
@@ -264,24 +240,35 @@
 							</Collapsible.Root>
 						{/each}
 					</ul>
-				</div>
-				<Collapsible.Root class="group/tools" open={false}>
-					<Collapsible.Trigger
-						class={cn(
-							buttonVariants({ size: 'icon', variant: 'ghost' }),
-							'flex h-6 w-max flex-row items-center gap-1 px-2 pl-1'
-						)}
+					<Combobox
+						side="right"
+						align="start"
+						options={Object.keys(agents)}
+						searchPlaceholder="Search agents..."
+						onValueChange={(value) => {
+							graph.agents.push(
+								JSON.parse(
+									JSON.stringify({
+										...agents[value],
+										name: `agent-${graph.agents.length + 1}`
+									})
+								)
+							);
+						}}
 					>
-						<ChevronRightIcon
-							class="transition-transform group-data-[state=open]/tools:rotate-90"
-						/>
-						<h3 class="text-sm font-bold">Export</h3>
-					</Collapsible.Trigger>
-					<Collapsible.Content class="p-2 pl-4">
-						<CodeBlock text={JSON.stringify(finalBody, null, 2)} class="w-full" language="json" />
-					</Collapsible.Content>
-				</Collapsible.Root>
-			</div>
+						{#snippet trigger({ props })}
+							<Button {...props} size="icon" class="mt-2 w-auto gap-1 px-3"
+								>Add an agent<PlusIcon /></Button
+							>{/snippet}
+						{#snippet option({ option })}
+							{option}
+						{/snippet}
+					</Combobox>
+				</ModalCollapsible>
+				<ModalCollapsible title="Export">
+					<CodeBlock text={JSON.stringify(finalBody, null, 2)} class="w-full" language="json" />
+				</ModalCollapsible>
+			</section>
 		</ScrollArea>
 
 		<Dialog.Footer>
