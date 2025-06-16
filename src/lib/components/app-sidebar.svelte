@@ -17,6 +17,7 @@
 	import CreateSession from './create-session.svelte';
 	import { PersistedState, useDebounce } from 'runed';
 	import { Session } from '$lib/session.svelte';
+	import { onMount } from 'svelte';
 
 	let ctx = socketCtx.get();
 	let conn = $derived(ctx.session);
@@ -62,6 +63,8 @@
 			error = 'Error';
 		}
 	};
+
+	onMount(() => refreshAgents());
 
 	const debouncedRefresh = useDebounce(() => refreshAgents(), 400);
 	const inputRefresh = () => {
