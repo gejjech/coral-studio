@@ -35,6 +35,7 @@
 	import TwostepButton from './twostep-button.svelte';
 	import ModalCollapsible from './modal-collapsible.svelte';
 	import Separator from './ui/separator/separator.svelte';
+	import Message from '../../routes/thread/[thread]/Message.svelte';
 
 	let ctx = socketCtx.get();
 
@@ -47,7 +48,7 @@
 		agents: []
 	});
 
-	let finalBody: { agentGraph: { agents: { [name: string]: Agent }; links: [] } } = $state({
+	let finalBody: { agentGraph: { agents: { [name: string]: Agent }; links: string[][] } } = $state({
 		agentGraph: { agents: {}, links: [] }
 	});
 	let finalAgentIds = $derived(graph.agents.map((a) => a.name));
@@ -95,7 +96,8 @@
 	);
 
 	const importFromJson = (text: string) => {
-		const data: { agentGraph: { agents: { [name: string]: Agent } } } = JSON.parse(text);
+		const data: { agentGraph: { agents: { [name: string]: Agent }; links?: string[][] } } =
+			JSON.parse(text);
 		if (
 			!('agentGraph' in data) ||
 			typeof data.agentGraph !== 'object' ||
@@ -108,6 +110,7 @@
 		}
 		// TODO(alan): proper validation (e.g zod)
 		graph.agents = [];
+		finalBody.agentGraph.links = data.agentGraph.links ?? [];
 		const importAgents = data.agentGraph.agents;
 		for (const [name, agent] of Object.entries(importAgents)) {
 			const newAgent: RegistryAgent & { name: string } = {
@@ -132,7 +135,7 @@
 			<Dialog.Description>Create a new session.</Dialog.Description>
 		</Dialog.Header>
 		<ScrollArea class="-mr-4">
-			<section class="flex flex-col gap-2">
+			<section class="flex flex-col gap-2 pr-4">
 				<ClipboardImportDialog onImport={importFromJson}>
 					{#snippet child({ props })}
 						<Button {...props} variant="outline" class="w-fit">Import <ClipboardCopy /></Button>
@@ -258,12 +261,52 @@
 					>
 						{#snippet trigger({ props })}
 							<Button {...props} size="icon" class="mt-2 w-auto gap-1 px-3"
-								>Add an agent<PlusIcon /></Button
+								>New agent<PlusIcon /></Button
 							>{/snippet}
 						{#snippet option({ option })}
 							{option}
 						{/snippet}
 					</Combobox>
+				</ModalCollapsible>
+				<ModalCollapsible title="Groups">
+					<p class="text-muted-foreground text-sm">
+						Define a list of groups, where each agent in a group can all interact.
+					</p>
+					<ul class="mt-4 flex flex-col gap-1">
+						{#each finalBody.agentGraph.links as link, i}
+							<Select.Root
+								type="multiple"
+								value={link}
+								onValueChange={(value) => {
+									finalBody.agentGraph.links[i] = value;
+								}}
+							>
+								<Select.Trigger>
+									{#if link.length == 0}
+										<span class="text-muted-foreground text-sm italic">Empty Group</span>
+									{:else}
+										{link.join(', ')}
+									{/if}
+								</Select.Trigger>
+								<Select.Content>
+									{#if Object.keys(finalBody.agentGraph.agents).length == 0}
+										<span class="text-muted-foreground px-2 text-sm italic">No agents</span>
+									{/if}
+									{#each Object.keys(finalBody.agentGraph.agents) as id}
+										<Select.Item value={id}>{id}</Select.Item>
+									{/each}
+								</Select.Content>
+							</Select.Root>
+						{/each}
+						<Button
+							size="icon"
+							class="w-fit gap-1 px-3"
+							disabled={(finalBody.agentGraph.links.at(-1)?.length ?? 1) == 0}
+							onclick={() => {
+								finalBody.agentGraph.links.push([]);
+							}}>New Group<PlusIcon /></Button
+						>
+					</ul>
 				</ModalCollapsible>
 				<ModalCollapsible title="Export">
 					<CodeBlock text={JSON.stringify(finalBody, null, 2)} class="w-full" language="json" />

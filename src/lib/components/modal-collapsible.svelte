@@ -18,7 +18,7 @@
 		<ChevronRightIcon class="transition-transform group-data-[state=open]:rotate-90" />
 		<h3 class="text-sm font-bold">{title}</h3>
 	</Collapsible.Trigger>
-	<Collapsible.Content class="p-2 pl-4">
+	<Collapsible.Content class="pr-2 pl-4">
 		{@render children?.()}
 	</Collapsible.Content>
 </Collapsible.Root>
