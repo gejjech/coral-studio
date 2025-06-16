@@ -6,7 +6,7 @@
 	import * as Select from '$lib/components/ui/select';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { socketCtx, type Agent } from '$lib/threads';
+	import { socketCtx, type Agent, type RegistryAgent } from '$lib/threads';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import { ChevronDown, Plus, PlusIcon, RefreshCw } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -35,17 +35,24 @@
 	const refreshAgents = async () => {
 		try {
 			connecting = true;
+			ctx.connection = null;
 			error = null;
 			ctx.registry = null;
 			const agents = (await fetch(`http://${host.current}/api/v1/registry`).then((res) =>
 				res.json()
-			)) as Agent[];
+			)) as RegistryAgent[];
 			ctx.registry = Object.fromEntries(agents.map((agent) => [agent.id, agent]));
 
 			const sessions = (await fetch(`http://${host.current}/api/v1/sessions`).then((res) =>
 				res.json()
 			)) as string[];
 			ctx.sessions = sessions;
+
+			ctx.connection = {
+				host: host.current,
+				appId: appId.current,
+				privacyKey: privKey.current
+			};
 
 			connecting = false;
 		} catch (e) {

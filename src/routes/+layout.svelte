@@ -6,6 +6,7 @@
 	let { children } = $props();
 
 	let socket = $state({
+		connection: null,
 		session: null,
 		sessions: null,
 		registry: null

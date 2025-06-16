@@ -23,6 +23,9 @@
 	import CodeBlock from './code-block.svelte';
 	import ScrollArea from './ui/scroll-area/scroll-area.svelte';
 	import ClipboardImportDialog from './clipboard-import-dialog.svelte';
+	import { Session } from '$lib/session.svelte';
+
+	let ctx = socketCtx.get();
 
 	let {
 		open = $bindable(false),
@@ -34,7 +37,9 @@
 		agents: []
 	});
 
-	let finalGraph: { agents: { [name: string]: Agent } } = $state({ agents: {} });
+	let finalBody: { agentGraph: { agents: { [name: string]: Agent }; links: [] } } = $state({
+		agentGraph: { agents: {}, links: [] }
+	});
 	let finalAgentIds = $derived(graph.agents.map((a) => a.name));
 	let finalAgentOptions = $derived(
 		Object.fromEntries(
@@ -47,14 +52,14 @@
 	let duplicateNames: SvelteSet<string> = $state(new SvelteSet());
 
 	watch([() => finalAgentIds, () => finalAgentOptions], () => {
-		finalGraph.agents = {};
+		finalBody.agentGraph.agents = {};
 		duplicateNames.clear();
 		for (const agent of graph.agents) {
-			if (agent.name in finalGraph.agents) {
+			if (agent.name in finalBody.agentGraph.agents) {
 				duplicateNames.add(agent.name);
 				continue;
 			}
-			finalGraph.agents[agent.name] = {
+			finalBody.agentGraph.agents[agent.name] = {
 				options: finalAgentOptions[agent.name],
 				type: 'local',
 				blocking: agent.blocking,
@@ -64,7 +69,8 @@
 	});
 
 	let valid = $derived(
-		duplicateNames.size == 0 &&
+		!!ctx.connection &&
+			duplicateNames.size == 0 &&
 			graph.agents.every((v) => {
 				return Object.values(v.options).every((opt) => {
 					console.log({
@@ -280,14 +286,39 @@
 						<h3 class="text-sm font-bold">Export</h3>
 					</Collapsible.Trigger>
 					<Collapsible.Content class="p-2 pl-4">
-						<CodeBlock text={JSON.stringify(finalGraph, null, 2)} class="w-full" language="json" />
+						<CodeBlock text={JSON.stringify(finalBody, null, 2)} class="w-full" language="json" />
 					</Collapsible.Content>
 				</Collapsible.Root>
 			</div>
 		</ScrollArea>
 
 		<Dialog.Footer>
-			<Button type="submit" onclick={() => {}} disabled={!valid}>Create</Button>
+			<Button
+				type="submit"
+				onclick={async () => {
+					if (!ctx.connection) return;
+					const res: { sessionId: string } = await fetch(`http://${ctx.connection.host}/sessions`, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify({
+							...finalBody,
+							applicationId: ctx.connection.appId,
+							privacyKey: ctx.connection.privacyKey
+						})
+					}).then((res) => res.json());
+					if (!ctx.sessions) ctx.sessions = [];
+					ctx.sessions.push(res.sessionId);
+					ctx.session = new Session({
+						host: ctx.connection.host,
+						appId: ctx.connection.appId,
+						privKey: ctx.connection.privacyKey,
+						session: res.sessionId
+					});
+				}}
+				disabled={!valid}>Create</Button
+			>
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>

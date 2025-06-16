@@ -41,4 +41,5 @@ export const socketCtx = new Context<{
 	session: Session | null;
 	registry: { [id: string]: RegistryAgent } | null;
 	sessions: string[] | null;
+	connection: { host: string; appId: string; privacyKey: string } | null;
 }>('websocket');
