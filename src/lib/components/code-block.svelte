@@ -3,13 +3,40 @@
 	import Button from './ui/button/button.svelte';
 	import { cn } from '$lib/utils';
 
-	const { text = '', class: className }: { text?: string; class?: string } = $props();
+	const {
+		text = '',
+		class: className,
+		language
+	}: { text?: string; class?: string; language?: 'json' } = $props();
 	let copied = $state(false);
+
+	const colorize: { [L in NonNullable<typeof language>]: (text: string) => string } = {
+		json: (text: string) =>
+			text
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(
+					/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+					(match) => {
+						let cls = 'number';
+						if (/^"/.test(match)) {
+							cls = /:$/.test(match) ? 'key' : 'string';
+						} else if (/true|false/.test(match)) {
+							cls = 'boolean';
+						} else if (/null/.test(match)) {
+							cls = 'null';
+						}
+						return `<span class="${cls}">${match}</span>`;
+					}
+				)
+	};
 </script>
 
 <code
 	class={cn(
 		'bg-secondary group relative inline-block rounded-md px-2 py-3 whitespace-pre',
+		language,
 		className
 	)}
 >
@@ -27,5 +54,32 @@
 				copied = false;
 			}, 500);
 		}}><CopyIcon class="size-3" /></Button
-	>{text}
+	>
+	{#if language}
+		{@html colorize[language](text)}
+	{:else}
+		{text}
+	{/if}
 </code>
+
+<style lang="postcss">
+	@layer components {
+		code.json :global {
+			.string {
+				color: green;
+			}
+			.number {
+				color: darkorange;
+			}
+			.boolean {
+				color: blue;
+			}
+			.null {
+				color: magenta;
+			}
+			.key {
+				color: red;
+			}
+		}
+	}
+</style>

@@ -229,9 +229,22 @@
 						{/each}
 					</ul>
 				</div>
-				<div>
-					<CodeBlock text={JSON.stringify(finalGraph, null, 2)} class="w-full" />
-				</div>
+				<Collapsible.Root class="group/tools" open={false}>
+					<Collapsible.Trigger
+						class={cn(
+							buttonVariants({ size: 'icon', variant: 'ghost' }),
+							'flex h-6 w-max flex-row items-center gap-1 px-2 pl-1'
+						)}
+					>
+						<ChevronRightIcon
+							class="transition-transform group-data-[state=open]/tools:rotate-90"
+						/>
+						<h3 class="text-sm font-bold">Import/Export</h3>
+					</Collapsible.Trigger>
+					<Collapsible.Content class="p-2 pl-4">
+						<CodeBlock text={JSON.stringify(finalGraph, null, 2)} class="w-full" language="json" />
+					</Collapsible.Content>
+				</Collapsible.Root>
 			</div>
 		</ScrollArea>
 
