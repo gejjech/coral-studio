@@ -24,6 +24,7 @@
 	import ScrollArea from './ui/scroll-area/scroll-area.svelte';
 	import ClipboardImportDialog from './clipboard-import-dialog.svelte';
 	import { Session } from '$lib/session.svelte';
+	import { toast } from 'svelte-sonner';
 
 	let ctx = socketCtx.get();
 
@@ -297,25 +298,31 @@
 				type="submit"
 				onclick={async () => {
 					if (!ctx.connection) return;
-					const res: { sessionId: string } = await fetch(`http://${ctx.connection.host}/sessions`, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify({
-							...finalBody,
-							applicationId: ctx.connection.appId,
-							privacyKey: ctx.connection.privacyKey
-						})
-					}).then((res) => res.json());
-					if (!ctx.sessions) ctx.sessions = [];
-					ctx.sessions.push(res.sessionId);
-					ctx.session = new Session({
-						host: ctx.connection.host,
-						appId: ctx.connection.appId,
-						privKey: ctx.connection.privacyKey,
-						session: res.sessionId
-					});
+					try {
+						const res: { sessionId: string } = await fetch(
+							`http://${ctx.connection.host}/sessions`,
+							{
+								method: 'POST',
+								headers: {
+									'Content-Type': 'application/json'
+								},
+								body: JSON.stringify({
+									...finalBody,
+									applicationId: ctx.connection.appId,
+									privacyKey: ctx.connection.privacyKey
+								})
+							}
+						).then((res) => res.json());
+						if (!ctx.sessions) ctx.sessions = [];
+						ctx.sessions.push(res.sessionId);
+						ctx.session = new Session({
+							...ctx.connection,
+							session: res.sessionId
+						});
+						open = false;
+					} catch (e) {
+						toast.error(`Failed to create session: ${e}`);
+					}
 				}}
 				disabled={!valid}>Create</Button
 			>
