@@ -9,7 +9,7 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { socketCtx, type Agent, type RegistryAgent } from '$lib/threads';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
-	import { ChevronDown, Plus, PlusIcon } from '@lucide/svelte';
+	import { ChevronDown, ClipboardCopy, ClipboardIcon, Plus, PlusIcon } from '@lucide/svelte';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
 	import { Label } from '$lib/components/ui/label';
 	import { cn } from '$lib/utils';
@@ -22,6 +22,7 @@
 	import { SvelteSet } from 'svelte/reactivity';
 	import CodeBlock from './code-block.svelte';
 	import ScrollArea from './ui/scroll-area/scroll-area.svelte';
+	import ClipboardImportDialog from './clipboard-import-dialog.svelte';
 
 	let {
 		open = $bindable(false),
@@ -55,7 +56,9 @@
 			}
 			finalGraph.agents[agent.name] = {
 				options: finalAgentOptions[agent.name],
-				id: agent.id
+				type: 'local',
+				blocking: agent.blocking,
+				agentType: agent.id
 			};
 		}
 	});
@@ -109,6 +112,34 @@
 							>
 								<PlusIcon />
 							</Popover.Trigger>
+							<ClipboardImportDialog
+								onImport={(text) => {
+									const data: { agents: { [name: string]: Agent } } = JSON.parse(text);
+									if (!('agents' in data) || typeof data.agents !== 'object') {
+										return;
+									}
+									// TODO(alan): proper validation (e.g zod)
+									graph.agents = [];
+									const importAgents = data.agents;
+									for (const [name, agent] of Object.entries(importAgents)) {
+										const newAgent: RegistryAgent & { name: string } = {
+											name,
+											id: agent.agentType,
+											blocking: agent.blocking,
+											// TODO (alan): handle when this lookup fails
+											options: agents[agent.agentType].options
+										};
+										for (const [oName, opt] of Object.entries(agent.options)) {
+											newAgent.options[oName].value = opt as any;
+										}
+										graph.agents.push(newAgent);
+									}
+								}}
+							>
+								{#snippet child({ props })}
+									<Button {...props} variant="outline"><ClipboardCopy /></Button>
+								{/snippet}
+							</ClipboardImportDialog>
 							<Popover.Content class="w-[200px] p-0" side="right" align="start">
 								<Command.Root>
 									<Command.Input placeholder="Add agent..." />
@@ -119,10 +150,14 @@
 												<Command.Item
 													value={agent.id}
 													onSelect={() => {
-														graph.agents.push({
-															...agent,
-															name: `agent-${graph.agents.length + 1}`
-														});
+														graph.agents.push(
+															JSON.parse(
+																JSON.stringify({
+																	...agent,
+																	name: `agent-${graph.agents.length + 1}`
+																})
+															)
+														);
 														closeAndFocusTrigger(triggerId);
 													}}
 												>
@@ -200,6 +235,9 @@
 													</Tooltip.Root>
 												</Tooltip.Provider>
 												<Input
+													type={/key/i.test(option.name) ? 'password' : 'text'}
+													autocomplete="off"
+													name={option.name}
 													placeholder={option.default !== null ? option.default.toString() : ''}
 													required={option.default === null}
 													aria-invalid={option.default === null && !option.value}
@@ -239,7 +277,7 @@
 						<ChevronRightIcon
 							class="transition-transform group-data-[state=open]/tools:rotate-90"
 						/>
-						<h3 class="text-sm font-bold">Import/Export</h3>
+						<h3 class="text-sm font-bold">Export</h3>
 					</Collapsible.Trigger>
 					<Collapsible.Content class="p-2 pl-4">
 						<CodeBlock text={JSON.stringify(finalGraph, null, 2)} class="w-full" language="json" />

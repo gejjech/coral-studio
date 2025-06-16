@@ -26,11 +26,14 @@ export type AgentOption = {
 
 export type RegistryAgent = {
 	id: string;
+	blocking?: boolean;
 	options: { [name: string]: AgentOption };
 };
 
 export type Agent = {
-	id: string;
+	type: 'local';
+	agentType: string;
+	blocking?: boolean;
 	options: { [name: string]: string | number | undefined };
 };
 
