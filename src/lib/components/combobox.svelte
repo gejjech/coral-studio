@@ -13,7 +13,8 @@
 		selectPlaceholder = 'Select an item...',
 		searchPlaceholder = 'Search items...',
 		emptyLabel = 'No items found.',
-		options = []
+		options = [],
+		onValueChange
 	}: {
 		open?: boolean;
 		value?: string;
@@ -21,6 +22,7 @@
 		selectPlaceholder?: string;
 		searchPlaceholder?: string;
 		emptyLabel?: string;
+		onValueChange?: (value: string) => void;
 	} = $props();
 
 	let triggerRef = $state<HTMLButtonElement>(null!);
@@ -61,6 +63,7 @@
 							value={option}
 							onSelect={() => {
 								value = option;
+								onValueChange?.(value);
 								closeAndFocusTrigger();
 							}}
 						>

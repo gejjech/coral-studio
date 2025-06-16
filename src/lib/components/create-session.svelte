@@ -7,7 +7,7 @@
 	import * as Collapsible from '$lib/components/ui/collapsible';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { socketCtx, type Agent } from '$lib/threads';
+	import { socketCtx, type Agent, type RegistryAgent } from '$lib/threads';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import { ChevronDown, Plus, PlusIcon } from '@lucide/svelte';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
@@ -20,33 +20,44 @@
 	import Combobox from './combobox.svelte';
 	import { watch } from 'runed';
 	import { SvelteSet } from 'svelte/reactivity';
+	import CodeBlock from './code-block.svelte';
 
-	let { open = $bindable(false), agents }: { open: boolean; agents: { [id: string]: Agent } } =
-		$props();
+	let {
+		open = $bindable(false),
+		agents
+	}: { open: boolean; agents: { [id: string]: RegistryAgent } } = $props();
 
 	let agentPickerOpen = $state(false);
-	let graph: { agents: (Agent & { name: string })[] } = $state({
+	let graph: { agents: (RegistryAgent & { name: string })[] } = $state({
 		agents: []
 	});
 
 	let finalGraph: { agents: { [name: string]: Agent } } = $state({ agents: {} });
 	let finalAgentIds = $derived(graph.agents.map((a) => a.name));
+	let finalAgentOptions = $derived(
+		Object.fromEntries(
+			graph.agents.map((a) => [
+				a.name,
+				Object.fromEntries(Object.entries(a.options).map(([k, v]) => [k, v.value]))
+			])
+		)
+	);
 	let duplicateNames: SvelteSet<string> = $state(new SvelteSet());
 
-	watch(
-		() => finalAgentIds,
-		() => {
-			finalGraph.agents = {};
-			duplicateNames.clear();
-			for (const agent of graph.agents) {
-				if (agent.name in finalGraph.agents) {
-					duplicateNames.add(agent.name);
-					continue;
-				}
-				finalGraph.agents[agent.name] = agent;
+	watch([() => finalAgentIds, () => finalAgentOptions], () => {
+		finalGraph.agents = {};
+		duplicateNames.clear();
+		for (const agent of graph.agents) {
+			if (agent.name in finalGraph.agents) {
+				duplicateNames.add(agent.name);
+				continue;
 			}
+			finalGraph.agents[agent.name] = {
+				options: finalAgentOptions[agent.name],
+				id: agent.id
+			};
 		}
-	);
+	});
 
 	let valid = $derived(
 		duplicateNames.size == 0 &&
@@ -127,7 +138,7 @@
 						<Collapsible.Root class="group/collapsible" open={true}>
 							<div class="flex flex-row items-center gap-1">
 								<Collapsible.Trigger
-									class={cn(buttonVariants({ size: 'icon', variant: 'outline' }), 'size-8')}
+									class={cn(buttonVariants({ size: 'icon', variant: 'ghost' }), 'size-8')}
 								>
 									<ChevronRightIcon
 										class="transition-transform group-data-[state=open]/collapsible:rotate-90"
@@ -136,45 +147,85 @@
 								<Input
 									bind:value={agent.name}
 									placeholder="agent name"
-									aria-invalid={duplicateNames.has(agent.name)}
+									aria-invalid={!agent.name || duplicateNames.has(agent.name)}
 								/>
 								<Combobox
 									bind:value={agent.id}
 									options={Object.keys(agents)}
+									onValueChange={(id) => {
+										const newAgent = agents[id];
+										if (!newAgent) return;
+										agent.options = newAgent.options;
+									}}
 									selectPlaceholder="Select an agent..."
 									searchPlaceholder="Search agents..."
 									emptyLabel="No agents found."
 								/>
 							</div>
-							<Collapsible.Content class="grid grid-cols-[max-content_auto] gap-2 p-2">
-								{#each Object.values(agent.options) as option (option.name)}
-									<Tooltip.Provider>
-										<Tooltip.Root disabled={!option.description}>
-											<Tooltip.Trigger>
-												{#snippet child({ props })}
-													<Label {...props} class="gap-1">
-														{option.name}
-														<span class="text-destructive"
-															>{option.default === null ? '*' : ''}
-														</span>
-													</Label>
-												{/snippet}
-											</Tooltip.Trigger>
-											<Tooltip.Content>
-												<p>{option.description}</p>
-											</Tooltip.Content>
-										</Tooltip.Root>
-									</Tooltip.Provider>
-									<Input
-										placeholder={option.default !== null ? option.default.toString() : ''}
-										required={option.default === null}
-										bind:value={option.value}
-									/>
-								{/each}
+							<Collapsible.Content class="flex flex-col gap-1 p-2">
+								<Collapsible.Root class="group/options" open={true}>
+									<Collapsible.Trigger
+										class={cn(
+											buttonVariants({ size: 'icon', variant: 'ghost' }),
+											'flex h-6 w-max flex-row items-center gap-1 px-2 pl-1'
+										)}
+									>
+										<ChevronRightIcon
+											class="transition-transform group-data-[state=open]/options:rotate-90"
+										/>
+										<h3 class="text-sm font-bold">Options</h3>
+									</Collapsible.Trigger>
+									<Collapsible.Content class="grid grid-cols-[max-content_auto] gap-2 p-2">
+										{#each Object.values(agent.options) as option (option.name)}
+											<Tooltip.Provider>
+												<Tooltip.Root disabled={!option.description}>
+													<Tooltip.Trigger>
+														{#snippet child({ props })}
+															<Label {...props} class="gap-1">
+																{option.name}
+																<span class="text-destructive"
+																	>{option.default === null ? '*' : ''}
+																</span>
+															</Label>
+														{/snippet}
+													</Tooltip.Trigger>
+													<Tooltip.Content>
+														<p>{option.description}</p>
+													</Tooltip.Content>
+												</Tooltip.Root>
+											</Tooltip.Provider>
+											<Input
+												placeholder={option.default !== null ? option.default.toString() : ''}
+												required={option.default === null}
+												aria-invalid={option.default === null && !option.value}
+												bind:value={option.value}
+											/>
+										{/each}
+									</Collapsible.Content>
+								</Collapsible.Root>
+								<Collapsible.Root class="group/tools" open={true}>
+									<Collapsible.Trigger
+										class={cn(
+											buttonVariants({ size: 'icon', variant: 'ghost' }),
+											'flex h-6 w-max flex-row items-center gap-1 px-2 pl-1'
+										)}
+									>
+										<ChevronRightIcon
+											class="transition-transform group-data-[state=open]/tools:rotate-90"
+										/>
+										<h3 class="text-sm font-bold">Custom Tools</h3>
+									</Collapsible.Trigger>
+									<Collapsible.Content class="grid grid-cols-[max-content_auto] gap-2 p-2">
+										{#each Object.values(agent.options) as option (option.name)}{/each}
+									</Collapsible.Content>
+								</Collapsible.Root>
 							</Collapsible.Content>
 						</Collapsible.Root>
 					{/each}
 				</ul>
+			</div>
+			<div>
+				<CodeBlock text={JSON.stringify(finalGraph, null, 2)} class="w-full" />
 			</div>
 		</div>
 

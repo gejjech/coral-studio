@@ -21,16 +21,21 @@ export type Thread = {
 export type AgentOption = {
 	name: string;
 	description?: string;
-	value?: string;
+	value: string | undefined;
 } & ({ type: 'string'; default: string | null } | { type: 'number'; default: number | null });
 
-export type Agent = {
+export type RegistryAgent = {
 	id: string;
 	options: { [name: string]: AgentOption };
 };
 
+export type Agent = {
+	id: string;
+	options: { [name: string]: string | number | undefined };
+};
+
 export const socketCtx = new Context<{
 	session: Session | null;
-	registry: { [id: string]: Agent } | null;
+	registry: { [id: string]: RegistryAgent } | null;
 	sessions: string[] | null;
 }>('websocket');
