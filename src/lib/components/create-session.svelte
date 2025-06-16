@@ -98,13 +98,21 @@
 						<Label class="text-right">Agents</Label>
 						<ClipboardImportDialog
 							onImport={(text) => {
-								const data: { agents: { [name: string]: Agent } } = JSON.parse(text);
-								if (!('agents' in data) || typeof data.agents !== 'object') {
+								const data: { agentGraph: { agents: { [name: string]: Agent } } } =
+									JSON.parse(text);
+								if (
+									!('agentGraph' in data) ||
+									typeof data.agentGraph !== 'object' ||
+									!data.agentGraph ||
+									!('agents' in data.agentGraph) ||
+									typeof data.agentGraph.agents !== 'object' ||
+									!data.agentGraph.agents
+								) {
 									return;
 								}
 								// TODO(alan): proper validation (e.g zod)
 								graph.agents = [];
-								const importAgents = data.agents;
+								const importAgents = data.agentGraph.agents;
 								for (const [name, agent] of Object.entries(importAgents)) {
 									const newAgent: RegistryAgent & { name: string } = {
 										name,
