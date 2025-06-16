@@ -1,7 +1,7 @@
-# coral-dbg
+# coral-studio
 ## Usage
 ```bash
-docker run -p 3000:3000 ghcr.io/coral-protocol/coral-dbg
+docker run -p 3000:3000 ghcr.io/coral-protocol/coral-studio
 ```
 
 ## Developing
