@@ -9,7 +9,14 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { socketCtx, type Agent, type RegistryAgent } from '$lib/threads';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
-	import { ChevronDown, ClipboardCopy, ClipboardIcon, Plus, PlusIcon } from '@lucide/svelte';
+	import {
+		ChevronDown,
+		ClipboardCopy,
+		ClipboardIcon,
+		Plus,
+		PlusIcon,
+		TrashIcon
+	} from '@lucide/svelte';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
 	import { Label } from '$lib/components/ui/label';
 	import { cn } from '$lib/utils';
@@ -25,6 +32,7 @@
 	import ClipboardImportDialog from './clipboard-import-dialog.svelte';
 	import { Session } from '$lib/session.svelte';
 	import { toast } from 'svelte-sonner';
+	import TwostepButton from './twostep-button.svelte';
 
 	let ctx = socketCtx.get();
 
@@ -157,7 +165,7 @@
 					</section>
 
 					<ul>
-						{#each graph.agents as agent}
+						{#each graph.agents as agent, i}
 							<Collapsible.Root class="group/collapsible" open={true}>
 								<div class="flex flex-row items-center gap-1">
 									<Collapsible.Trigger
@@ -184,6 +192,13 @@
 										searchPlaceholder="Search agents..."
 										emptyLabel="No agents found."
 									/>
+									<TwostepButton
+										variant="destructive"
+										size="icon"
+										onclick={() => {
+											graph.agents.splice(i, 1);
+										}}><TrashIcon /></TwostepButton
+									>
 								</div>
 								<Collapsible.Content class="flex flex-col gap-1 p-2 pl-4">
 									<Collapsible.Root class="group/options" open={true}>
