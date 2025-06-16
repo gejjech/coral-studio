@@ -16,6 +16,7 @@
 	import { cn } from '$lib/utils';
 	import CreateSession from './create-session.svelte';
 	import { PersistedState, useDebounce } from 'runed';
+	import { Session } from '$lib/session.svelte';
 
 	let ctx = socketCtx.get();
 	let conn = $derived(ctx.session);
@@ -109,7 +110,9 @@
 						<DropdownMenu.Trigger>
 							{#snippet child({ props })}
 								<Sidebar.MenuButton {...props}>
-									Select Session
+									<span class="truncate"
+										>{ctx.session ? ctx.session.session : 'Select Session'}</span
+									>
 									<ChevronDown class="ml-auto" />
 								</Sidebar.MenuButton>
 							{/snippet}
@@ -117,8 +120,13 @@
 						<DropdownMenu.Content class="w-(--bits-dropdown-menu-anchor-width)">
 							{#if ctx.sessions && ctx.sessions.length > 0}
 								{#each ctx.sessions as session}
-									<DropdownMenu.Item>
-										<span>{session}</span>
+									<DropdownMenu.Item
+										onSelect={() => {
+											if (!ctx.connection) return;
+											ctx.session = new Session({ ...ctx.connection, session });
+										}}
+									>
+										<span class="truncate">{session}</span>
 									</DropdownMenu.Item>
 								{/each}
 								<DropdownMenu.Separator />

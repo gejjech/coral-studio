@@ -17,19 +17,21 @@ export class Session {
 	constructor({
 		host,
 		appId,
-		privKey,
+		privacyKey,
 		session
 	}: {
 		host: string;
 		appId: string;
-		privKey: string;
+		privacyKey: string;
 		session: string;
 	}) {
 		this.host = host;
 		this.appId = appId;
-		this.privKey = privKey;
+		this.privKey = privacyKey;
 		this.session = session;
-		this.socket = new WebSocket(`ws://${host}/debug/${appId}/${privKey}/${session}/?timeout=10000`);
+		this.socket = new WebSocket(
+			`ws://${host}/debug/${appId}/${privacyKey}/${session}/?timeout=10000`
+		);
 
 		this.socket.onopen = () => {
 			toast.success('WS connected.');
