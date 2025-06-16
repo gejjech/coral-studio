@@ -33,7 +33,6 @@
 		agents
 	}: { open: boolean; agents: { [id: string]: RegistryAgent } } = $props();
 
-	let agentPickerOpen = $state(false);
 	let graph: { agents: (RegistryAgent & { name: string })[] } = $state({
 		agents: []
 	});
@@ -84,17 +83,6 @@
 				});
 			})
 	);
-
-	// We want to refocus the trigger button when the user selects
-	// an item from the list so users can continue navigating the
-	// rest of the form with the keyboard.
-	function closeAndFocusTrigger(triggerId: string) {
-		agentPickerOpen = false;
-		tick().then(() => {
-			document.getElementById(triggerId)?.focus();
-		});
-	}
-	const triggerId = useId();
 </script>
 
 <Dialog.Root bind:open>
@@ -108,76 +96,56 @@
 				<div class="flex flex-col gap-4">
 					<section class="flex flex-row gap-2">
 						<Label class="text-right">Agents</Label>
-						<Popover.Root bind:open={agentPickerOpen}>
-							<Popover.Trigger
-								id={triggerId}
-								class={buttonVariants({
-									variant: 'outline',
-									size: 'icon',
-									class: 'justify-center'
-								})}
-							>
-								<PlusIcon />
-							</Popover.Trigger>
-							<ClipboardImportDialog
-								onImport={(text) => {
-									const data: { agents: { [name: string]: Agent } } = JSON.parse(text);
-									if (!('agents' in data) || typeof data.agents !== 'object') {
-										return;
+						<ClipboardImportDialog
+							onImport={(text) => {
+								const data: { agents: { [name: string]: Agent } } = JSON.parse(text);
+								if (!('agents' in data) || typeof data.agents !== 'object') {
+									return;
+								}
+								// TODO(alan): proper validation (e.g zod)
+								graph.agents = [];
+								const importAgents = data.agents;
+								for (const [name, agent] of Object.entries(importAgents)) {
+									const newAgent: RegistryAgent & { name: string } = {
+										name,
+										id: agent.agentType,
+										blocking: agent.blocking,
+										// TODO (alan): handle when this lookup fails
+										options: agents[agent.agentType].options
+									};
+									for (const [oName, opt] of Object.entries(agent.options)) {
+										newAgent.options[oName].value = opt as any;
 									}
-									// TODO(alan): proper validation (e.g zod)
-									graph.agents = [];
-									const importAgents = data.agents;
-									for (const [name, agent] of Object.entries(importAgents)) {
-										const newAgent: RegistryAgent & { name: string } = {
-											name,
-											id: agent.agentType,
-											blocking: agent.blocking,
-											// TODO (alan): handle when this lookup fails
-											options: agents[agent.agentType].options
-										};
-										for (const [oName, opt] of Object.entries(agent.options)) {
-											newAgent.options[oName].value = opt as any;
-										}
-										graph.agents.push(newAgent);
-									}
-								}}
-							>
-								{#snippet child({ props })}
-									<Button {...props} variant="outline"><ClipboardCopy /></Button>
-								{/snippet}
-							</ClipboardImportDialog>
-							<Popover.Content class="w-[200px] p-0" side="right" align="start">
-								<Command.Root>
-									<Command.Input placeholder="Add agent..." />
-									<Command.List>
-										<Command.Empty>No results found.</Command.Empty>
-										<Command.Group>
-											{#each Object.values(agents) as agent}
-												<Command.Item
-													value={agent.id}
-													onSelect={() => {
-														graph.agents.push(
-															JSON.parse(
-																JSON.stringify({
-																	...agent,
-																	name: `agent-${graph.agents.length + 1}`
-																})
-															)
-														);
-														closeAndFocusTrigger(triggerId);
-													}}
-												>
-													<span>
-														{agent.id}
-													</span>
-												</Command.Item>
-											{/each}
-										</Command.Group>
-									</Command.List>
-								</Command.Root>
-							</Popover.Content>
-						</Popover.Root>
+									graph.agents.push(newAgent);
+								}
+							}}
+						>
+							{#snippet child({ props })}
+								<Button {...props} variant="outline"><ClipboardCopy /></Button>
+							{/snippet}
+						</ClipboardImportDialog>
+						<Combobox
+							side="right"
+							align="start"
+							options={Object.keys(agents)}
+							searchPlaceholder="Search agents..."
+							onValueChange={(value) => {
+								graph.agents.push(
+									JSON.parse(
+										JSON.stringify({
+											...agents[value],
+											name: `agent-${graph.agents.length + 1}`
+										})
+									)
+								);
+							}}
+						>
+							{#snippet trigger({ props })}
+								<Button {...props} variant="outline" size="icon"><PlusIcon /></Button>{/snippet}
+							{#snippet option({ option })}
+								{option}
+							{/snippet}
+						</Combobox>
 					</section>
 
 					<ul>
