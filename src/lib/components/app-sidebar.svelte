@@ -62,7 +62,7 @@
 	};
 </script>
 
-<CreateSession bind:open={createSessionOpen} agents={[]} />
+<CreateSession bind:open={createSessionOpen} agents={ctx.registry ?? {}} />
 
 <Sidebar.Root>
 	<Sidebar.Header>

@@ -21,6 +21,7 @@ export type Thread = {
 export type AgentOption = {
 	name: string;
 	description?: string;
+	value?: string;
 } & ({ type: 'string'; default: string | null } | { type: 'number'; default: number | null });
 
 export type Agent = {
