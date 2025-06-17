@@ -135,7 +135,7 @@
 			<Dialog.Description>Create a new session.</Dialog.Description>
 		</Dialog.Header>
 		<ScrollArea class="-mr-4">
-			<section class="flex flex-col gap-2 pr-4">
+			<section class="flex max-w-full flex-col gap-2 pr-4">
 				<ClipboardImportDialog onImport={importFromJson}>
 					{#snippet child({ props })}
 						<Button {...props} variant="outline" class="w-fit">Import <ClipboardCopy /></Button>
@@ -192,7 +192,9 @@
 											/>
 											<h3 class="text-sm font-bold">Options</h3>
 										</Collapsible.Trigger>
-										<Collapsible.Content class="grid grid-cols-[max-content_auto] gap-2 p-2 pl-4">
+										<Collapsible.Content
+											class="grid grid-cols-[max-content_minmax(0,auto)] gap-2 p-2 pl-4"
+										>
 											{#each Object.values(agent.options) as option (option.name)}
 												<Tooltip.Provider>
 													<Tooltip.Root disabled={!option.description}>
@@ -309,7 +311,9 @@
 					</ul>
 				</ModalCollapsible>
 				<ModalCollapsible title="Export">
-					<CodeBlock text={JSON.stringify(finalBody, null, 2)} class="w-full" language="json" />
+					<ScrollArea orientation="horizontal" class="max-w-full">
+						<CodeBlock text={JSON.stringify(finalBody, null, 2)} class="" language="json" />
+					</ScrollArea>
 				</ModalCollapsible>
 			</section>
 		</ScrollArea>

@@ -2,6 +2,7 @@
 	import { CopyIcon } from '@lucide/svelte';
 	import Button from './ui/button/button.svelte';
 	import { cn } from '$lib/utils';
+	import ScrollArea from './ui/scroll-area/scroll-area.svelte';
 
 	const {
 		text = '',
@@ -35,7 +36,7 @@
 
 <code
 	class={cn(
-		'bg-secondary group relative inline-block rounded-md px-2 py-3 whitespace-pre',
+		'bg-secondary group relative inline-block overflow-x-auto rounded-md px-2 py-3 whitespace-pre',
 		language,
 		className
 	)}
