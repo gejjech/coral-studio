@@ -8,7 +8,7 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import * as Resizable from '$lib/components/ui/resizable';
-	import { socketCtx } from '$lib/threads';
+	import { sessionCtx } from '$lib/threads';
 	import { useDebounce, useIntersectionObserver } from 'runed';
 	import { onMount } from 'svelte';
 	import Message from './Message.svelte';
@@ -18,7 +18,7 @@
 	import { Users } from '@lucide/svelte';
 	import { pickTextColor, stringToColor } from '$lib/color';
 
-	let ctx = socketCtx.get();
+	let ctx = sessionCtx.get();
 	let conn = $derived(ctx.session);
 	let thread = $derived(conn?.threads[page.params['thread']]);
 	let messages = $derived(conn?.messages[page.params['thread']]);

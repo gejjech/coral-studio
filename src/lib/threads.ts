@@ -35,11 +35,30 @@ export type Agent = {
 	agentType: string;
 	blocking?: boolean;
 	options: { [name: string]: string | number | undefined };
+	tools?: string[];
 };
 
-export const socketCtx = new Context<{
+export type ToolTransport = {
+	type: 'http';
+	url: string;
+};
+
+export type CustomTool = {
+	transport: ToolTransport;
+	toolSchema: {
+		name: string;
+		description?: string;
+		inputSchema: {
+			type: 'object';
+			properties: Record<string, unknown>;
+			required?: string[];
+		};
+	};
+};
+
+export const sessionCtx = new Context<{
 	session: Session | null;
 	registry: { [id: string]: RegistryAgent } | null;
 	sessions: string[] | null;
 	connection: { host: string; appId: string; privacyKey: string } | null;
-}>('websocket');
+}>('sessionCtx');

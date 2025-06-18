@@ -7,7 +7,7 @@
 	import * as Collapsible from '$lib/components/ui/collapsible';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { socketCtx, type Agent, type RegistryAgent } from '$lib/threads';
+	import { sessionCtx, type Agent, type CustomTool, type RegistryAgent } from '$lib/threads';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import {
 		ChevronDown,
@@ -36,22 +36,33 @@
 	import ModalCollapsible from './modal-collapsible.svelte';
 	import Separator from './ui/separator/separator.svelte';
 	import Message from '../../routes/thread/[thread]/Message.svelte';
+	import { browser } from '$app/environment';
+	import { tools } from '$lib/mcptools';
 
-	let ctx = socketCtx.get();
+	let ctx = sessionCtx.get();
 
 	let {
 		open = $bindable(false),
 		agents
 	}: { open: boolean; agents: { [id: string]: RegistryAgent } } = $props();
 
-	let graph: { agents: (RegistryAgent & { name: string })[] } = $state({
+	let graph: {
+		agents: (RegistryAgent & { name: string; tools: (keyof typeof tools)[] })[];
+	} = $state({
 		agents: []
 	});
 
-	let finalBody: { agentGraph: { agents: { [name: string]: Agent }; links: string[][] } } = $state({
-		agentGraph: { agents: {}, links: [] }
+	let finalBody: {
+		agentGraph: {
+			agents: { [name: string]: Agent };
+			links: string[][];
+			tools: { [name: string]: CustomTool };
+		};
+	} = $state({
+		agentGraph: { agents: {}, links: [], tools: {} }
 	});
 	let finalAgentIds = $derived(graph.agents.map((a) => a.name));
+	let finalAgentTools = $derived(graph.agents.map((a) => a.tools));
 	let finalAgentOptions = $derived(
 		Object.fromEntries(
 			graph.agents.map((a) => [
@@ -61,22 +72,40 @@
 		)
 	);
 	let duplicateNames: SvelteSet<string> = $state(new SvelteSet());
+	let neededTools: SvelteSet<keyof typeof tools> = $state(new SvelteSet());
 
-	watch([() => finalAgentIds, () => finalAgentOptions], () => {
+	watch([() => finalAgentIds, () => finalAgentTools, () => finalAgentOptions], () => {
 		finalBody.agentGraph.agents = {};
 		duplicateNames.clear();
+		neededTools.clear();
 		for (const agent of graph.agents) {
 			if (agent.name in finalBody.agentGraph.agents) {
 				duplicateNames.add(agent.name);
 				continue;
 			}
+			for (const tool of agent.tools) {
+				neededTools.add(tool);
+			}
 			finalBody.agentGraph.agents[agent.name] = {
 				options: finalAgentOptions[agent.name],
 				type: 'local',
 				blocking: agent.blocking,
-				agentType: agent.id
+				agentType: agent.id,
+				tools: agent.tools
 			};
 		}
+		finalBody.agentGraph.tools = Object.fromEntries(
+			Array.from(neededTools).map((id) => {
+				const tool = tools[id];
+				return [
+					id,
+					{
+						...tool,
+						transport: { ...tool.transport, url: `${window.location.origin}${tool.transport.url}` }
+					}
+				];
+			})
+		) as any;
 	});
 
 	let valid = $derived(
@@ -113,12 +142,13 @@
 		finalBody.agentGraph.links = data.agentGraph.links ?? [];
 		const importAgents = data.agentGraph.agents;
 		for (const [name, agent] of Object.entries(importAgents)) {
-			const newAgent: RegistryAgent & { name: string } = {
+			const newAgent: RegistryAgent & { name: string; tools: (keyof typeof tools)[] } = {
 				name,
 				id: agent.agentType,
 				blocking: agent.blocking,
 				// TODO (alan): handle when this lookup fails
-				options: agents[agent.agentType].options
+				options: agents[agent.agentType].options,
+				tools: (agent.tools ?? []) as any
 			};
 			for (const [oName, opt] of Object.entries(agent.options)) {
 				newAgent.options[oName].value = opt as any;
@@ -238,7 +268,30 @@
 											<h3 class="text-sm font-bold">Custom Tools</h3>
 										</Collapsible.Trigger>
 										<Collapsible.Content class="grid grid-cols-[max-content_auto] gap-2 p-2">
-											{#each Object.values(agent.options) as option (option.name)}{/each}
+											<Select.Root
+												type="multiple"
+												value={agent.tools}
+												onValueChange={(value) => {
+													agent.tools = value as any;
+												}}
+											>
+												<Select.Trigger>
+													{#if agent.tools.length == 0}
+														<span class="text-muted-foreground text-sm italic">No extra tools.</span
+														>
+													{:else}
+														{agent.tools.join(', ')}
+													{/if}
+												</Select.Trigger>
+												<Select.Content>
+													{#if Object.keys(tools).length == 0}
+														<span class="text-muted-foreground px-2 text-sm italic">No tools</span>
+													{/if}
+													{#each Object.entries(tools) as [name, tool] (name)}
+														<Select.Item value={name}>{tool.toolSchema.name}</Select.Item>
+													{/each}
+												</Select.Content>
+											</Select.Root>
 										</Collapsible.Content>
 									</Collapsible.Root>
 								</Collapsible.Content>
@@ -255,6 +308,7 @@
 								JSON.parse(
 									JSON.stringify({
 										...agents[value],
+										tools: [],
 										name: `agent-${graph.agents.length + 1}`
 									})
 								)
