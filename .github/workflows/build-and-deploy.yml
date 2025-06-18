@@ -42,8 +42,8 @@ jobs:
           set -eu
 
           OCI_ARCHIVE=$(nix build --no-link --print-out-paths .#docker)
-          DOCKER_REPOSITORY="docker://ghcr.io/coral-protocol/coral-dbg"
+          DOCKER_REPOSITORY="docker://ghcr.io/coral-protocol/coral-studio"
 
           gzip --decompress --stdout --force < $OCI_ARCHIVE > result.tar
-          crane push ./result.tar "ghcr.io/coral-protocol/coral-dbg"
+          crane push ./result.tar "ghcr.io/coral-protocol/coral-studio"
         if: github.ref == 'refs/heads/main'
