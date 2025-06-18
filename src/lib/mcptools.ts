@@ -12,7 +12,7 @@ export const tools = {
 			inputSchema: {
 				type: 'object',
 				properties: {
-					message: { type: 'string' }
+					message: { type: 'string', description: 'Message to show to the user.' }
 				}
 			}
 		}
