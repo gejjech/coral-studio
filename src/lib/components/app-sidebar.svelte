@@ -6,7 +6,7 @@
 	import * as Select from '$lib/components/ui/select';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { socketCtx, type Agent, type RegistryAgent } from '$lib/threads';
+	import { sessionCtx, type Agent, type RegistryAgent } from '$lib/threads';
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import { ChevronDown, Plus, PlusIcon, RefreshCw } from '@lucide/svelte';
 	import { Button } from '$lib/components/ui/button';
@@ -18,9 +18,11 @@
 	import { PersistedState, useDebounce } from 'runed';
 	import { Session } from '$lib/session.svelte';
 	import { onMount } from 'svelte';
+	import { socketCtx } from '$lib/socket.svelte';
 
-	let ctx = socketCtx.get();
-	let conn = $derived(ctx.session);
+	let sessCtx = sessionCtx.get();
+	let tools = socketCtx.get();
+	let conn = $derived(sessCtx.session);
 
 	let threadName = $state('');
 	let participants: string[] = $state([]);
@@ -37,20 +39,20 @@
 	const refreshAgents = async () => {
 		try {
 			connecting = true;
-			ctx.connection = null;
+			sessCtx.connection = null;
 			error = null;
-			ctx.registry = null;
+			sessCtx.registry = null;
 			const agents = (await fetch(`http://${host.current}/api/v1/registry`).then((res) =>
 				res.json()
 			)) as RegistryAgent[];
-			ctx.registry = Object.fromEntries(agents.map((agent) => [agent.id, agent]));
+			sessCtx.registry = Object.fromEntries(agents.map((agent) => [agent.id, agent]));
 
 			const sessions = (await fetch(`http://${host.current}/api/v1/sessions`).then((res) =>
 				res.json()
 			)) as string[];
-			ctx.sessions = sessions;
+			sessCtx.sessions = sessions;
 
-			ctx.connection = {
+			sessCtx.connection = {
 				host: host.current,
 				appId: appId.current,
 				privacyKey: privKey.current
@@ -59,7 +61,7 @@
 			connecting = false;
 		} catch (e) {
 			connecting = false;
-			ctx.registry = null;
+			sessCtx.registry = null;
 			error = 'Error';
 		}
 	};
@@ -73,7 +75,7 @@
 	};
 </script>
 
-<CreateSession bind:open={createSessionOpen} agents={ctx.registry ?? {}} />
+<CreateSession bind:open={createSessionOpen} agents={sessCtx.registry ?? {}} />
 
 <Sidebar.Root>
 	<Sidebar.Header>
@@ -88,8 +90,8 @@
 				>
 					{#if error}
 						{error}
-					{:else if ctx.registry}
-						{Object.keys(ctx.registry).length} agents
+					{:else if sessCtx.registry}
+						{Object.keys(sessCtx.registry).length} agents
 					{/if}
 				</span>
 				<Button
@@ -114,19 +116,19 @@
 							{#snippet child({ props })}
 								<Sidebar.MenuButton {...props}>
 									<span class="truncate"
-										>{ctx.session ? ctx.session.session : 'Select Session'}</span
+										>{sessCtx.session ? sessCtx.session.session : 'Select Session'}</span
 									>
 									<ChevronDown class="ml-auto" />
 								</Sidebar.MenuButton>
 							{/snippet}
 						</DropdownMenu.Trigger>
 						<DropdownMenu.Content class="w-(--bits-dropdown-menu-anchor-width)">
-							{#if ctx.sessions && ctx.sessions.length > 0}
-								{#each ctx.sessions as session}
+							{#if sessCtx.sessions && sessCtx.sessions.length > 0}
+								{#each sessCtx.sessions as session}
 									<DropdownMenu.Item
 										onSelect={() => {
-											if (!ctx.connection) return;
-											ctx.session = new Session({ ...ctx.connection, session });
+											if (!sessCtx.connection) return;
+											sessCtx.session = new Session({ ...sessCtx.connection, session });
 										}}
 									>
 										<span class="truncate">{session}</span>
@@ -187,8 +189,8 @@
 							<Select.Root type="multiple" bind:value={participants}>
 								<Select.Trigger class="w-[180px]"></Select.Trigger>
 								<Select.Content>
-									{#each Object.values(conn?.agents ?? {}) as agent}
-										<Select.Item value={agent.id}>{agent.id}</Select.Item>
+									{#each Object.keys(conn?.agents ?? {}) as name}
+										<Select.Item value={name}>{name}</Select.Item>
 									{/each}
 									{#if Object.values(conn?.agents ?? {}).length == 0}
 										<p class="text-muted-foreground text-center text-sm">No agents registered.</p>
@@ -242,6 +244,33 @@
 							</Sidebar.MenuButton>
 						</Sidebar.MenuItem>
 					{/each}
+				</Sidebar.Menu>
+			</Sidebar.GroupContent>
+		</Sidebar.Group>
+		<Sidebar.Group>
+			<Sidebar.GroupLabel
+				class="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm"
+			>
+				Tools
+				<!-- <ChevronRightIcon -->
+				<!-- 	class="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" -->
+				<!-- /> -->
+			</Sidebar.GroupLabel>
+			<Sidebar.GroupContent>
+				<Sidebar.Menu>
+					<Sidebar.MenuItem>
+						<Sidebar.MenuButton class="truncate">
+							{#snippet child({ props })}
+								{@const reqs = Object.values(tools.userInput.requests).filter(
+									(req) => req.response === undefined
+								).length}
+								<a href="/tools/user-input" {...props}
+									>User Input
+									<Badge class={cn(reqs == 0 && 'hidden')}>{reqs}</Badge>
+								</a>
+							{/snippet}
+						</Sidebar.MenuButton>
+					</Sidebar.MenuItem>
 				</Sidebar.Menu>
 			</Sidebar.GroupContent>
 		</Sidebar.Group>
