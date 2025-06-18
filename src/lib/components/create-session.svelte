@@ -95,7 +95,16 @@
 			};
 		}
 		finalBody.agentGraph.tools = Object.fromEntries(
-			Array.from(neededTools).map((id) => [id, tools[id]])
+			Array.from(neededTools).map((id) => {
+				const tool = tools[id];
+				return [
+					id,
+					{
+						...tool,
+						transport: { ...tool.transport, url: `${window.location.origin}${tool.transport.url}` }
+					}
+				];
+			})
 		) as any;
 	});
 
