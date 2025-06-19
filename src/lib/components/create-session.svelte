@@ -362,7 +362,7 @@
 							disabled={(finalBody.agentGraph.links.at(-1)?.length ?? 1) == 0}
 							onclick={() => {
 								finalBody.agentGraph.links.push([]);
-							}}>New Group<PlusIcon /></Button
+							}}>New group<PlusIcon /></Button
 						>
 					</ul>
 				</ModalCollapsible>
