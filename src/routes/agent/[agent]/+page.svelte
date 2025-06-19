@@ -8,7 +8,6 @@
 	import { sessionCtx } from '$lib/threads';
 	import { Button } from '$lib/components/ui/button';
 	import { ChevronRight, ExternalLink } from '@lucide/svelte';
-	import TwostepButton from '$lib/components/twostep-button.svelte';
 
 	let ctx = sessionCtx.get();
 	let conn = $derived(ctx.session);

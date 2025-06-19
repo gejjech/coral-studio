@@ -83,7 +83,12 @@
 
 <Sidebar.Root>
 	<Sidebar.Header>
-		<Sidebar.Group>
+		<Sidebar.MenuButton class="text-lg font-bold">
+			{#snippet child({ props })}
+				<a href="/" {...props}>coral-studio</a>
+			{/snippet}
+		</Sidebar.MenuButton>
+		<Sidebar.Group class="-mt-3">
 			<Sidebar.GroupLabel class="text-sidebar-foreground flex flex-row gap-1 pr-0 text-sm">
 				<span>Connection</span>
 				<Tooltip.Provider>
