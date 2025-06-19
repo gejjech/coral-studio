@@ -134,7 +134,7 @@
 				{/if}
 			</Resizable.PaneGroup>
 		{:else}
-			<p class="text-muted-foreground text-sm">Thread not found.</p>
+			<p class="text-muted-foreground mt-4 text-center text-sm">Thread not found.</p>
 		{/if}
 	</Sidebar.Inset>
 </Sidebar.Provider>

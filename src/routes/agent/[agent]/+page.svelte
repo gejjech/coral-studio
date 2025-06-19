@@ -77,7 +77,7 @@
 				</Accordion.Root>
 			</main>
 		{:else}
-			<p class="text-muted-foreground text-sm">Agent not found.</p>
+			<p class="text-muted-foreground mt-4 text-center text-sm">Agent not found.</p>
 		{/if}
 	</Sidebar.Inset>
 </Sidebar.Provider>
