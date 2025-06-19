@@ -22,7 +22,7 @@
 			<Dialog.Description></Dialog.Description>
 		</Dialog.Header>
 
-		<Textarea bind:value />
+		<Textarea bind:value class="min-h-60" />
 		<Button
 			onclick={() => {
 				onImport?.(value);
