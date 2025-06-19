@@ -20,6 +20,7 @@
 	import { onMount } from 'svelte';
 	import { socketCtx } from '$lib/socket.svelte';
 	import { toggleMode } from 'mode-watcher';
+	import { page } from '$app/state';
 
 	let sessCtx = sessionCtx.get();
 	let tools = socketCtx.get();
@@ -234,12 +235,40 @@
 			<Sidebar.GroupContent>
 				<Sidebar.Menu>
 					{#each Object.values(conn?.threads ?? {}) as thread (thread.id)}
+						{@const url = `/thread/${thread.id}`}
 						<Sidebar.MenuItem>
-							<Sidebar.MenuButton class="truncate">
+							<Sidebar.MenuButton class="truncate" isActive={page.url.pathname === url}>
 								{#snippet child({ props })}
-									<a href={`/thread/${thread.id}`} {...props}
+									<a href={url} {...props}
 										>{thread.name}
 										<Badge class={cn(thread.unread == 0 && 'hidden')}>{thread.unread}</Badge>
+									</a>
+								{/snippet}
+							</Sidebar.MenuButton>
+						</Sidebar.MenuItem>
+					{/each}
+				</Sidebar.Menu>
+			</Sidebar.GroupContent>
+		</Sidebar.Group>
+		<Sidebar.Group>
+			<Sidebar.GroupLabel
+				class="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm"
+			>
+				Agents
+				<!-- <ChevronRightIcon -->
+				<!-- 	class="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" -->
+				<!-- /> -->
+			</Sidebar.GroupLabel>
+			<Sidebar.GroupContent>
+				<Sidebar.Menu>
+					{#each Object.entries(conn?.agents ?? {}) as [name, agent] (name)}
+						{@const url = `/agent/${name}`}
+						<Sidebar.MenuItem>
+							<Sidebar.MenuButton class="truncate" isActive={page.url.pathname === url}>
+								{#snippet child({ props })}
+									<a href={url} {...props}
+										>{name}
+										<!-- <Badge class={cn(thread.unread == 0 && 'hidden')}>{thread.unread}</Badge> -->
 									</a>
 								{/snippet}
 							</Sidebar.MenuButton>
@@ -260,7 +289,10 @@
 			<Sidebar.GroupContent>
 				<Sidebar.Menu>
 					<Sidebar.MenuItem>
-						<Sidebar.MenuButton class="truncate">
+						<Sidebar.MenuButton
+							class="truncate"
+							isActive={page.url.pathname === '/tools/user-input'}
+						>
 							{#snippet child({ props })}
 								{@const reqs = Object.values(tools.userInput.requests).filter(
 									(req) => req.response === undefined
