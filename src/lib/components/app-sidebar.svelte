@@ -6,12 +6,14 @@
 	import * as Select from '$lib/components/ui/select';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { sessionCtx, type Agent, type RegistryAgent } from '$lib/threads';
-	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
-	import { ChevronDown, MoonIcon, Plus, PlusIcon, RefreshCw, SunIcon } from '@lucide/svelte';
+	import * as Tooltip from '$lib/components/ui/tooltip';
+
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+
+	import { sessionCtx, type Agent, type RegistryAgent } from '$lib/threads';
+	import { ChevronDown, MoonIcon, Plus, PlusIcon, RefreshCw, SunIcon } from '@lucide/svelte';
 	import Badge from './ui/badge/badge.svelte';
 	import { cn } from '$lib/utils';
 	import CreateSession from './create-session.svelte';
@@ -64,7 +66,7 @@
 		} catch (e) {
 			connecting = false;
 			sessCtx.registry = null;
-			error = 'Error';
+			error = `${e}`;
 		}
 	};
 
@@ -84,18 +86,22 @@
 		<Sidebar.Group>
 			<Sidebar.GroupLabel class="text-sidebar-foreground flex flex-row gap-1 pr-0 text-sm">
 				<span>Connection</span>
-				<span
-					class={cn(
-						'text-muted-foreground flex-grow text-right text-sm font-normal',
-						error && 'text-destructive'
-					)}
-				>
-					{#if error}
-						{error}
-					{:else if sessCtx.registry}
-						{Object.keys(sessCtx.registry).length} agents
-					{/if}
-				</span>
+				<Tooltip.Provider>
+					<Tooltip.Root>
+						<Tooltip.Trigger disabled={error === null} class="flex-grow text-right ">
+							<span
+								class={cn('text-muted-foreground text-sm font-normal', error && 'text-destructive')}
+							>
+								{#if error}
+									Error
+								{:else if sessCtx.registry}
+									{Object.keys(sessCtx.registry).length} agents
+								{/if}
+							</span>
+						</Tooltip.Trigger>
+						<Tooltip.Content><p>{error}</p></Tooltip.Content>
+					</Tooltip.Root>
+				</Tooltip.Provider>
 				<Button
 					size="icon"
 					variant="outline"
