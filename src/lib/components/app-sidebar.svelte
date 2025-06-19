@@ -8,6 +8,8 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 
+	import Logo from '$lib/icons/logo.svelte';
+
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
@@ -85,7 +87,7 @@
 	<Sidebar.Header>
 		<Sidebar.MenuButton class="text-lg font-bold">
 			{#snippet child({ props })}
-				<a href="/" {...props}>coral-studio</a>
+				<a href="/" {...props}><Logo class="text-foreground" />coral-studio</a>
 			{/snippet}
 		</Sidebar.MenuButton>
 		<Sidebar.Group class="-mt-3">
