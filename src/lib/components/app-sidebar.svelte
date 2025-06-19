@@ -116,7 +116,11 @@
 					<DropdownMenu.Root>
 						<DropdownMenu.Trigger>
 							{#snippet child({ props })}
-								<Sidebar.MenuButton {...props}>
+								<Sidebar.MenuButton
+									{...props}
+									aria-invalid={sessCtx.session === null}
+									class="ring-offset-background aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive aria-invalid:ring"
+								>
 									<span class="truncate"
 										>{sessCtx.session ? sessCtx.session.session : 'Select Session'}</span
 									>
