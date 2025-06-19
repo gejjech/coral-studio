@@ -32,7 +32,7 @@
 			<Breadcrumb.Root class="flex-grow">
 				<Breadcrumb.List>
 					<Breadcrumb.Item class="hidden md:block">
-						<Breadcrumb.Link>Threads</Breadcrumb.Link>
+						<Breadcrumb.Link>Agents</Breadcrumb.Link>
 					</Breadcrumb.Item>
 					<Breadcrumb.Separator class="hidden md:block" />
 					<Breadcrumb.Item>
