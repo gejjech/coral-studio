@@ -268,10 +268,10 @@
 					{#each Object.entries(conn?.agents ?? {}) as [name, agent] (name)}
 						{@const url = `/agent/${name}`}
 						<Sidebar.MenuItem>
-							<Sidebar.MenuButton class="truncate" isActive={page.url.pathname === url}>
+							<Sidebar.MenuButton isActive={page.url.pathname === url}>
 								{#snippet child({ props })}
 									<a href={url} {...props}
-										>{name}
+										><span class="w-full truncate">{name}</span>
 										<!-- <Badge class={cn(thread.unread == 0 && 'hidden')}>{thread.unread}</Badge> -->
 									</a>
 								{/snippet}
