@@ -19,7 +19,7 @@
 	import CreateSession from './create-session.svelte';
 	import { PersistedState, useDebounce } from 'runed';
 	import { Session } from '$lib/session.svelte';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { socketCtx } from '$lib/socket.svelte';
 	import { toggleMode } from 'mode-watcher';
 	import { page } from '$app/state';
@@ -129,11 +129,13 @@
 							{#snippet child({ props })}
 								<Sidebar.MenuButton
 									{...props}
-									aria-invalid={sessCtx.session === null}
+									aria-invalid={sessCtx.session === null || !sessCtx.session.connected}
 									class="ring-offset-background aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive aria-invalid:ring"
 								>
 									<span class="truncate"
-										>{sessCtx.session ? sessCtx.session.session : 'Select Session'}</span
+										>{sessCtx.session && sessCtx.session.connected
+											? sessCtx.session.session
+											: 'Select Session'}</span
 									>
 									<ChevronDown class="ml-auto" />
 								</Sidebar.MenuButton>
