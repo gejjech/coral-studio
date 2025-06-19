@@ -3,6 +3,8 @@ import { toast } from 'svelte-sonner';
 
 export class Session {
 	private socket: WebSocket;
+	public connected = $state(false);
+
 	readonly host: string;
 	readonly appId: string;
 	readonly privKey: string;
@@ -35,14 +37,19 @@ export class Session {
 
 		this.socket.onopen = () => {
 			toast.success('Connected to session.');
+			this.connected = true;
 		};
 		this.socket.onerror = (e) => {
 			toast.error(`Session WS Error: ${e}`);
+			this.connected = false;
 			this.socket.close();
 		};
-		this.socket.onclose = () => {
+		this.socket.onclose = (e) => {
+			if (this.connected)
+				toast.info(`Session connection closed${e.reason ? ` - ${e.reason}` : '.'}`);
 			this.threads = {};
 			this.agents = {};
+			this.connected = false;
 		};
 		this.socket.onmessage = (ev) => {
 			let data = null;
