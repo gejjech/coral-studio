@@ -159,7 +159,9 @@
 </script>
 
 <Dialog.Root bind:open>
-	<Dialog.Content class="grid max-h-[90svh] grid-rows-[max-content_minmax(0,1fr)_max-content]">
+	<Dialog.Content
+		class="grid max-h-[90svh] grid-cols-[100%] grid-rows-[max-content_minmax(0,1fr)_max-content] lg:max-w-2xl"
+	>
 		<Dialog.Header>
 			<Dialog.Title>New Session</Dialog.Title>
 			<Dialog.Description>Create a new session.</Dialog.Description>
@@ -365,9 +367,7 @@
 					</ul>
 				</ModalCollapsible>
 				<ModalCollapsible title="Export">
-					<ScrollArea orientation="horizontal" class="max-w-full">
-						<CodeBlock text={JSON.stringify(finalBody, null, 2)} class="" language="json" />
-					</ScrollArea>
+					<CodeBlock text={JSON.stringify(finalBody, null, 2)} class="" language="json" />
 				</ModalCollapsible>
 			</section>
 		</ScrollArea>
