@@ -23,12 +23,6 @@
 	let thread = $derived(conn?.threads[page.params['thread']]);
 	let messages = $derived(conn?.messages[page.params['thread']]);
 
-	onMount(() => {
-		if (!thread) {
-			goto('/');
-		}
-	});
-
 	let message = $state('');
 
 	let memberListOpen = $state(true);
@@ -37,36 +31,34 @@
 	afterNavigate(useDebounce(() => thread && (thread.unread = 0), 1000));
 </script>
 
-{#if thread !== undefined && messages !== undefined}
-	<Sidebar.Provider>
-		<AppSidebar />
-		<Sidebar.Inset>
-			<header
-				class="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4"
+<Sidebar.Provider>
+	<AppSidebar />
+	<Sidebar.Inset>
+		<header class="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4">
+			<Sidebar.Trigger class="-ml-1" />
+			<Separator orientation="vertical" class="mr-2 h-4" />
+			<Breadcrumb.Root class="flex-grow">
+				<Breadcrumb.List>
+					<Breadcrumb.Item class="hidden md:block">
+						<Breadcrumb.Link>Threads</Breadcrumb.Link>
+					</Breadcrumb.Item>
+					<Breadcrumb.Separator class="hidden md:block" />
+					<Breadcrumb.Item>
+						<Breadcrumb.Page>{thread?.name ?? ''} {thread?.id ?? ''}</Breadcrumb.Page>
+					</Breadcrumb.Item>
+				</Breadcrumb.List>
+			</Breadcrumb.Root>
+			<Button
+				variant="ghost"
+				size="icon"
+				onclick={() => {
+					memberListOpen = !memberListOpen;
+				}}
 			>
-				<Sidebar.Trigger class="-ml-1" />
-				<Separator orientation="vertical" class="mr-2 h-4" />
-				<Breadcrumb.Root class="flex-grow">
-					<Breadcrumb.List>
-						<Breadcrumb.Item class="hidden md:block">
-							<Breadcrumb.Link>Threads</Breadcrumb.Link>
-						</Breadcrumb.Item>
-						<Breadcrumb.Separator class="hidden md:block" />
-						<Breadcrumb.Item>
-							<Breadcrumb.Page>{thread.name} {thread.id}</Breadcrumb.Page>
-						</Breadcrumb.Item>
-					</Breadcrumb.List>
-				</Breadcrumb.Root>
-				<Button
-					variant="ghost"
-					size="icon"
-					onclick={() => {
-						memberListOpen = !memberListOpen;
-					}}
-				>
-					<Users />
-				</Button>
-			</header>
+				<Users />
+			</Button>
+		</header>
+		{#if thread !== undefined && messages !== undefined}
 			<Resizable.PaneGroup direction="horizontal">
 				<Resizable.Pane class="flex h-full">
 					<main class="flex flex-grow flex-col gap-0 p-4">
@@ -141,6 +133,8 @@
 					</Resizable.Pane>
 				{/if}
 			</Resizable.PaneGroup>
-		</Sidebar.Inset>
-	</Sidebar.Provider>
-{/if}
+		{:else}
+			<p class="text-muted-foreground mt-4 text-center text-sm">Thread not found.</p>
+		{/if}
+	</Sidebar.Inset>
+</Sidebar.Provider>

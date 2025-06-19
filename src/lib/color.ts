@@ -26,5 +26,5 @@ export const pickTextColor = (bg: string) => {
 	if (!rgb) return null;
 	const { r, g, b } = rgb;
 	const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-	return yiq < 140 ? 'text-primary-foreground' : 'text-primary';
+	return yiq < 140 ? 'text-white' : 'text-black';
 };

@@ -6,20 +6,23 @@
 	import * as Select from '$lib/components/ui/select';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { sessionCtx, type Agent, type RegistryAgent } from '$lib/threads';
-	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
-	import { ChevronDown, MoonIcon, Plus, PlusIcon, RefreshCw, SunIcon } from '@lucide/svelte';
+	import * as Tooltip from '$lib/components/ui/tooltip';
+
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
+
+	import { sessionCtx, type Agent, type RegistryAgent } from '$lib/threads';
+	import { ChevronDown, MoonIcon, Plus, PlusIcon, RefreshCw, SunIcon } from '@lucide/svelte';
 	import Badge from './ui/badge/badge.svelte';
 	import { cn } from '$lib/utils';
 	import CreateSession from './create-session.svelte';
 	import { PersistedState, useDebounce } from 'runed';
 	import { Session } from '$lib/session.svelte';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { socketCtx } from '$lib/socket.svelte';
 	import { toggleMode } from 'mode-watcher';
+	import { page } from '$app/state';
 
 	let sessCtx = sessionCtx.get();
 	let tools = socketCtx.get();
@@ -63,7 +66,7 @@
 		} catch (e) {
 			connecting = false;
 			sessCtx.registry = null;
-			error = 'Error';
+			error = `${e}`;
 		}
 	};
 
@@ -80,21 +83,30 @@
 
 <Sidebar.Root>
 	<Sidebar.Header>
-		<Sidebar.Group>
+		<Sidebar.MenuButton class="text-lg font-bold">
+			{#snippet child({ props })}
+				<a href="/" {...props}>coral-studio</a>
+			{/snippet}
+		</Sidebar.MenuButton>
+		<Sidebar.Group class="-mt-3">
 			<Sidebar.GroupLabel class="text-sidebar-foreground flex flex-row gap-1 pr-0 text-sm">
 				<span>Connection</span>
-				<span
-					class={cn(
-						'text-muted-foreground flex-grow text-right text-sm font-normal',
-						error && 'text-destructive'
-					)}
-				>
-					{#if error}
-						{error}
-					{:else if sessCtx.registry}
-						{Object.keys(sessCtx.registry).length} agents
-					{/if}
-				</span>
+				<Tooltip.Provider>
+					<Tooltip.Root>
+						<Tooltip.Trigger disabled={error === null} class="flex-grow text-right ">
+							<span
+								class={cn('text-muted-foreground text-sm font-normal', error && 'text-destructive')}
+							>
+								{#if error}
+									Error
+								{:else if sessCtx.registry}
+									{Object.keys(sessCtx.registry).length} agents
+								{/if}
+							</span>
+						</Tooltip.Trigger>
+						<Tooltip.Content><p>{error}</p></Tooltip.Content>
+					</Tooltip.Root>
+				</Tooltip.Provider>
 				<Button
 					size="icon"
 					variant="outline"
@@ -115,9 +127,15 @@
 					<DropdownMenu.Root>
 						<DropdownMenu.Trigger>
 							{#snippet child({ props })}
-								<Sidebar.MenuButton {...props}>
+								<Sidebar.MenuButton
+									{...props}
+									aria-invalid={sessCtx.session === null || !sessCtx.session.connected}
+									class="ring-offset-background aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive aria-invalid:ring"
+								>
 									<span class="truncate"
-										>{sessCtx.session ? sessCtx.session.session : 'Select Session'}</span
+										>{sessCtx.session && sessCtx.session.connected
+											? sessCtx.session.session
+											: 'Select Session'}</span
 									>
 									<ChevronDown class="ml-auto" />
 								</Sidebar.MenuButton>
@@ -234,12 +252,40 @@
 			<Sidebar.GroupContent>
 				<Sidebar.Menu>
 					{#each Object.values(conn?.threads ?? {}) as thread (thread.id)}
+						{@const url = `/thread/${thread.id}`}
 						<Sidebar.MenuItem>
-							<Sidebar.MenuButton class="truncate">
+							<Sidebar.MenuButton class="truncate" isActive={page.url.pathname === url}>
 								{#snippet child({ props })}
-									<a href={`/thread/${thread.id}`} {...props}
+									<a href={url} {...props}
 										>{thread.name}
 										<Badge class={cn(thread.unread == 0 && 'hidden')}>{thread.unread}</Badge>
+									</a>
+								{/snippet}
+							</Sidebar.MenuButton>
+						</Sidebar.MenuItem>
+					{/each}
+				</Sidebar.Menu>
+			</Sidebar.GroupContent>
+		</Sidebar.Group>
+		<Sidebar.Group>
+			<Sidebar.GroupLabel
+				class="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm"
+			>
+				Agents
+				<!-- <ChevronRightIcon -->
+				<!-- 	class="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" -->
+				<!-- /> -->
+			</Sidebar.GroupLabel>
+			<Sidebar.GroupContent>
+				<Sidebar.Menu>
+					{#each Object.entries(conn?.agents ?? {}) as [name, agent] (name)}
+						{@const url = `/agent/${name}`}
+						<Sidebar.MenuItem>
+							<Sidebar.MenuButton isActive={page.url.pathname === url}>
+								{#snippet child({ props })}
+									<a href={url} {...props}
+										><span class="w-full truncate">{name}</span>
+										<!-- <Badge class={cn(thread.unread == 0 && 'hidden')}>{thread.unread}</Badge> -->
 									</a>
 								{/snippet}
 							</Sidebar.MenuButton>
@@ -260,7 +306,10 @@
 			<Sidebar.GroupContent>
 				<Sidebar.Menu>
 					<Sidebar.MenuItem>
-						<Sidebar.MenuButton class="truncate">
+						<Sidebar.MenuButton
+							class="truncate"
+							isActive={page.url.pathname === '/tools/user-input'}
+						>
 							{#snippet child({ props })}
 								{@const reqs = Object.values(tools.userInput.requests).filter(
 									(req) => req.response === undefined
