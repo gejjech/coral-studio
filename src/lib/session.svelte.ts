@@ -34,10 +34,10 @@ export class Session {
 		);
 
 		this.socket.onopen = () => {
-			toast.success('WS connected.');
+			toast.success('Connected to session.');
 		};
 		this.socket.onerror = (e) => {
-			toast.error(`WS error: ${e}`);
+			toast.error(`Session WS Error: ${e}`);
 			this.socket.close();
 		};
 		this.socket.onclose = () => {
