@@ -330,7 +330,7 @@
 					<p class="text-muted-foreground text-sm">
 						Define a list of groups, where each agent in a group can all interact.
 					</p>
-					<ul class="mt-4 flex flex-col gap-1">
+					<ul class="mt-2 flex flex-col gap-1">
 						{#each finalBody.agentGraph.links as link, i}
 							<Select.Root
 								type="multiple"
