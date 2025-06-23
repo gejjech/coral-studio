@@ -1,6 +1,6 @@
 {
-    "name": "coral-studio",
-    "private": true,
+    "name": "@coral-protocol/coral-studio",
+    "private": false,
     "version": "0.0.1",
     "type": "module",
     "scripts": {
