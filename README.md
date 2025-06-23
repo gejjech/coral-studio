@@ -1,23 +1,31 @@
 # coral-studio
-## Usage
+
+[//]: # (TODO: Fix npx)
+[//]: # (# Running via npx &#40;recommended&#41;)
+
+[//]: # (```bash)
+
+[//]: # (npx @coral-protcol/coral-studio)
+
+[//]: # (```)
+## Running
+1. After cloning the repo, cd into it.
+2. Install dependencies with yarn, then start a dev server:
 ```bash
-docker run -p 3000:3000 ghcr.io/coral-protocol/coral-studio
+yarn install
+yarn dev
 ```
 
-## Developing
-
-Install dependencies with `pnpm install`, then start a dev server:
-```bash
-pnpm dev
-
-# or start the server and open the app in a new browser tab
-pnpm dev -- --open
-```
-
+You can then access coral studio at http://127.0.0.1:3000
 ## Building
 
 ```bash
-pnpm build
+yarn build
 ```
 
-You can preview the production build with `pnpm preview`.
+You can preview the production build with `yarn preview`.
+
+## Running on Docker (not recommended)
+```bash
+docker run -p 3000:3000 ghcr.io/coral-protocol/coral-studio
+```
