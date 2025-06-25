@@ -35,6 +35,7 @@ export type Agent = {
 	agentType: string;
 	blocking?: boolean;
 	options: { [name: string]: string | number | undefined };
+	systemPrompt?: string;
 	tools?: string[];
 };
 

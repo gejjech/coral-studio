@@ -38,6 +38,7 @@
 	import Message from '../../routes/thread/[thread]/Message.svelte';
 	import { browser } from '$app/environment';
 	import { tools } from '$lib/mcptools';
+	import Textarea from './ui/textarea/textarea.svelte';
 
 	let ctx = sessionCtx.get();
 
@@ -47,7 +48,11 @@
 	}: { open: boolean; agents: { [id: string]: RegistryAgent } } = $props();
 
 	let graph: {
-		agents: (RegistryAgent & { name: string; tools: (keyof typeof tools)[] })[];
+		agents: (RegistryAgent & {
+			name: string;
+			tools: (keyof typeof tools)[];
+			systemPrompt?: string;
+		})[];
 	} = $state({
 		agents: []
 	});
@@ -71,42 +76,50 @@
 			])
 		)
 	);
+	let reactivityHack = $derived(graph.agents.flatMap((a) => Object.values(a)));
 	let duplicateNames: SvelteSet<string> = $state(new SvelteSet());
 	let neededTools: SvelteSet<keyof typeof tools> = $state(new SvelteSet());
 
-	watch([() => finalAgentIds, () => finalAgentTools, () => finalAgentOptions], () => {
-		finalBody.agentGraph.agents = {};
-		duplicateNames.clear();
-		neededTools.clear();
-		for (const agent of graph.agents) {
-			if (agent.name in finalBody.agentGraph.agents) {
-				duplicateNames.add(agent.name);
-				continue;
+	watch(
+		[() => finalAgentIds, () => finalAgentTools, () => finalAgentOptions, () => reactivityHack],
+		() => {
+			finalBody.agentGraph.agents = {};
+			duplicateNames.clear();
+			neededTools.clear();
+			for (const agent of graph.agents) {
+				if (agent.name in finalBody.agentGraph.agents) {
+					duplicateNames.add(agent.name);
+					continue;
+				}
+				for (const tool of agent.tools) {
+					neededTools.add(tool);
+				}
+				finalBody.agentGraph.agents[agent.name] = {
+					options: finalAgentOptions[agent.name],
+					type: 'local',
+					blocking: agent.blocking,
+					agentType: agent.id,
+					tools: agent.tools,
+					systemPrompt: agent.systemPrompt
+				};
 			}
-			for (const tool of agent.tools) {
-				neededTools.add(tool);
-			}
-			finalBody.agentGraph.agents[agent.name] = {
-				options: finalAgentOptions[agent.name],
-				type: 'local',
-				blocking: agent.blocking,
-				agentType: agent.id,
-				tools: agent.tools
-			};
+			finalBody.agentGraph.tools = Object.fromEntries(
+				Array.from(neededTools).map((id) => {
+					const tool = tools[id];
+					return [
+						id,
+						{
+							...tool,
+							transport: {
+								...tool.transport,
+								url: `${window.location.origin}${tool.transport.url}`
+							}
+						}
+					];
+				})
+			) as any;
 		}
-		finalBody.agentGraph.tools = Object.fromEntries(
-			Array.from(neededTools).map((id) => {
-				const tool = tools[id];
-				return [
-					id,
-					{
-						...tool,
-						transport: { ...tool.transport, url: `${window.location.origin}${tool.transport.url}` }
-					}
-				];
-			})
-		) as any;
-	});
+	);
 
 	let valid = $derived(
 		!!ctx.connection &&
@@ -142,12 +155,17 @@
 		finalBody.agentGraph.links = data.agentGraph.links ?? [];
 		const importAgents = data.agentGraph.agents;
 		for (const [name, agent] of Object.entries(importAgents)) {
-			const newAgent: RegistryAgent & { name: string; tools: (keyof typeof tools)[] } = {
+			const newAgent: RegistryAgent & {
+				name: string;
+				tools: (keyof typeof tools)[];
+				systemPrompt?: string;
+			} = {
 				name,
 				id: agent.agentType,
 				blocking: agent.blocking,
 				// TODO (alan): handle when this lookup fails
 				options: agents[agent.agentType].options,
+				systemPrompt: agent.systemPrompt,
 				tools: (agent.tools ?? []) as any
 			};
 			for (const [oName, opt] of Object.entries(agent.options)) {
@@ -294,6 +312,26 @@
 													{/each}
 												</Select.Content>
 											</Select.Root>
+										</Collapsible.Content>
+									</Collapsible.Root>
+									<Collapsible.Root class="group/prompt" open={false}>
+										<Collapsible.Trigger
+											class={cn(
+												buttonVariants({ size: 'icon', variant: 'ghost' }),
+												'flex h-6 w-max flex-row items-center gap-1 px-2 pl-1'
+											)}
+										>
+											<ChevronRightIcon
+												class="transition-transform group-data-[state=open]/tools:rotate-90"
+											/>
+											<h3 class="text-sm font-bold">Prompt</h3>
+										</Collapsible.Trigger>
+										<Collapsible.Content class="grid grid-cols-1 gap-2 p-2">
+											<p class="text-muted-foreground text-sm">
+												Inject additional prompt text to the agent's system prompt (the agent must
+												support this!)
+											</p>
+											<Textarea bind:value={agent.systemPrompt} class="" />
 										</Collapsible.Content>
 									</Collapsible.Root>
 								</Collapsible.Content>
