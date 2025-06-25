@@ -36,7 +36,7 @@
 					</Breadcrumb.Item>
 					<Breadcrumb.Separator class="hidden md:block" />
 					<Breadcrumb.Item>
-						<Breadcrumb.Page>{page.params['agent'] ?? ''} {agent?.agentType ?? ''}</Breadcrumb.Page>
+						<Breadcrumb.Page>{page.params['agent'] ?? ''}</Breadcrumb.Page>
 					</Breadcrumb.Item>
 				</Breadcrumb.List>
 			</Breadcrumb.Root>
@@ -44,6 +44,9 @@
 		{#if agent !== undefined}
 			<main class="p-4">
 				<h1 class="text-3xl font-bold">{agentName}</h1>
+				<p>{agent.description}</p>
+				<h3>MCP Connection Url:</h3>
+				<p>{agent.mcpUrl ?? 'n/a'}</p>
 				<!-- <p>{agent.description}</p> -->
 				<Accordion.Root type="single" class="w-full sm:max-w-[70%]" value="threads">
 					<Accordion.Item value="threads">

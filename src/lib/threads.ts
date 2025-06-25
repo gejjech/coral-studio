@@ -30,6 +30,13 @@ export type RegistryAgent = {
 	options: { [name: string]: AgentOption };
 };
 
+export type SessionAgent = {
+	id: string;
+	description: string;
+	mcpUrl: string | undefined;
+	extraTools: Set<CustomTool>;
+};
+
 export type Agent = {
 	type: 'local';
 	agentType: string;

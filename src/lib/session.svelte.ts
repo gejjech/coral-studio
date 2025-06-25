@@ -1,4 +1,4 @@
-import type { Agent, Message, Thread } from './threads';
+import type { Agent, Message, SessionAgent, Thread } from './threads';
 import { toast } from 'svelte-sonner';
 
 export class Session {
@@ -12,7 +12,7 @@ export class Session {
 
 	public agentId: string | null = $state(null);
 
-	public agents: { [id: string]: Agent } = $state({});
+	public agents: { [id: string]: SessionAgent } = $state({});
 	public threads: { [id: string]: Thread & { unread: number } } = $state({});
 	public messages: { [thread: string]: Message[] } = $state({});
 
