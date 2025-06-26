@@ -26,6 +26,7 @@
 	import IconRobot from 'phosphor-icons-svelte/IconRobotRegular.svelte';
 	import IconToolbox from 'phosphor-icons-svelte/IconToolboxRegular.svelte';
 	import IconPackage from 'phosphor-icons-svelte/IconPackageRegular.svelte';
+	import IconNotepad from 'phosphor-icons-svelte/IconNotepadRegular.svelte';
 
 	import Badge from './ui/badge/badge.svelte';
 	import { cn } from '$lib/utils';
@@ -39,6 +40,7 @@
 	import Separator from './ui/separator/separator.svelte';
 	import ServerSwitcher from './server-switcher.svelte';
 	import NavBundle from './nav-bundle.svelte';
+	import SidebarLink from './sidebar-link.svelte';
 
 	let sessCtx = sessionCtx.get();
 	let tools = socketCtx.get();
@@ -99,16 +101,20 @@
 			}}
 		/>
 	</Sidebar.Header>
-	<Sidebar.Separator />
 	<Sidebar.Content class="gap-0">
 		<Sidebar.Group>
 			<Sidebar.GroupLabel class="text-sidebar-foreground flex flex-row gap-1 pr-0 text-sm">
-				<span class="font-sans font-medium tracking-wide select-none">Server</span>
+				<span class="text-muted-foreground font-sans font-medium tracking-wide select-none"
+					>Server</span
+				>
 				<Tooltip.Provider>
 					<Tooltip.Root>
 						<Tooltip.Trigger disabled={error === null} class="flex-grow text-right ">
 							<span
-								class={cn('text-muted-foreground text-xs font-normal', error && 'text-destructive')}
+								class={cn(
+									'text-muted-foreground font-mono text-xs font-normal',
+									error && 'text-destructive'
+								)}
 							>
 								{#if error}
 									Error
@@ -132,17 +138,14 @@
 			</Sidebar.GroupLabel>
 			<Sidebar.GroupContent>
 				<Sidebar.Menu>
-					<Sidebar.MenuItem>
-						<Sidebar.MenuButton>
-							<IconPackage />
-							Registry
-						</Sidebar.MenuButton>
-					</Sidebar.MenuItem>
+					<SidebarLink url="/registry" icon={IconPackage} title="Agent Registry" />
+					<SidebarLink url="/logs" icon={IconNotepad} title="Logs" />
 				</Sidebar.Menu>
 			</Sidebar.GroupContent>
 		</Sidebar.Group>
+		<Sidebar.Separator />
 		<Sidebar.Group>
-			<Sidebar.GroupLabel>Session</Sidebar.GroupLabel>
+			<Sidebar.GroupLabel class="text-muted-foreground">Session</Sidebar.GroupLabel>
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
 					{#snippet child({ props })}
@@ -220,36 +223,6 @@
 					}
 				]}
 			/>
-		</Sidebar.Group>
-		<Sidebar.Group>
-			<Sidebar.GroupLabel
-				class="group/label text-sidebar-foreground font-sans text-lg font-semibold tracking-wide select-none"
-			>
-				Tools
-				<!-- <ChevronRightIcon -->
-				<!-- 	class="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" -->
-				<!-- /> -->
-			</Sidebar.GroupLabel>
-			<Sidebar.GroupContent>
-				<Sidebar.Menu>
-					<Sidebar.MenuItem>
-						<Sidebar.MenuButton
-							class="truncate"
-							isActive={page.url.pathname === '/tools/user-input'}
-						>
-							{#snippet child({ props })}
-								{@const reqs = Object.values(tools.userInput.requests).filter(
-									(req) => req.response === undefined
-								).length}
-								<a href="/tools/user-input" {...props}
-									>User Input
-									<Badge class={cn(reqs == 0 && 'hidden')}>{reqs}</Badge>
-								</a>
-							{/snippet}
-						</Sidebar.MenuButton>
-					</Sidebar.MenuItem>
-				</Sidebar.Menu>
-			</Sidebar.GroupContent>
 		</Sidebar.Group>
 	</Sidebar.Content>
 	<Sidebar.Footer>

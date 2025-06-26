@@ -7,6 +7,7 @@
 	import Badge from '$lib/components/ui/badge/badge.svelte';
 	import SidebarMenuBadge from '$lib/components/ui/sidebar/sidebar-menu-badge.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip';
+	import SidebarLink from './sidebar-link.svelte';
 
 	let {
 		items
@@ -37,20 +38,13 @@
 				<Sidebar.MenuItem {...props}>
 					<Collapsible.Trigger disabled={item.items.length === 0}>
 						{#snippet child({ props })}
-							<Sidebar.MenuButton {...props} tooltipContent={item.title}>
-								{#if item.icon}
-									<item.icon />
-								{/if}
-								<span class="font-sans font-medium tracking-wide">
-									{item.title}
-								</span>
-								{#if badgeSum}
-									<Badge class="font-mono">{badgeSum}</Badge>
-								{/if}
-								<ChevronRightIcon
-									class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
-								/>
-							</Sidebar.MenuButton>
+							<SidebarLink
+								{...props}
+								title={item.title}
+								icon={item.icon}
+								badge={badgeSum}
+								collapsible
+							/>
 						{/snippet}
 					</Collapsible.Trigger>
 					<Collapsible.Content>

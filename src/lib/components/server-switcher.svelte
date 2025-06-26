@@ -12,7 +12,7 @@
 	import TooltipLabel from './tooltip-label.svelte';
 	import Button from './ui/button/button.svelte';
 	import { fade } from 'svelte/transition';
-	import { tick, untrack } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 
 	let servers = new PersistedState<string[]>('servers', []);
 	let selected = new PersistedState<string | null>('selectedServer', null);
@@ -23,6 +23,10 @@
 		if (servers.current.indexOf(cur) === -1) {
 			selected.current = null;
 		}
+	});
+	onMount(() => {
+		if (selected.current === null) return;
+		onSelect?.(selected.current);
 	});
 
 	let dialogOpen = $state(false);
@@ -55,7 +59,8 @@
 							<span class="font-sans text-xs font-bold tracking-widest uppercase"
 								>Coral Protocol</span
 							>
-							<span class="">Studio</span>
+							<span class="">Studio{selected.current === null ? '' : ` - ${selected.current}`}</span
+							>
 						</div>
 						<CaretUpDown class="ml-auto" />
 					</Sidebar.MenuButton>
