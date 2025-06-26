@@ -164,15 +164,15 @@
 {#if ctx.connection}
 	<Dialog.Root bind:open>
 		<Dialog.Content
-			class="grid max-h-[90svh] grid-cols-[100%] grid-rows-[max-content_minmax(0,1fr)_max-content] lg:max-w-2xl"
+			class="grid max-h-[90svh] grid-cols-[100%] grid-rows-[max-content_minmax(0,1fr)_max-content] gap-y-2 lg:max-w-2xl"
 		>
 			<Dialog.Header>
 				<Dialog.Title>New Session</Dialog.Title>
 				<Dialog.Description>Create a new session.</Dialog.Description>
 			</Dialog.Header>
-			<ScrollArea class="-mr-4">
+			<ScrollArea class="">
 				<section class="flex max-w-full flex-col gap-2 pr-4">
-					<section class="grid grid-cols-2">
+					<section class="grid grid-cols-[minmax(0,max-content)_auto] gap-4 gap-y-2 pt-2">
 						<TooltipLabel>Application ID</TooltipLabel>
 						<Input
 							required
