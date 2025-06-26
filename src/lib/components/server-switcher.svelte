@@ -7,7 +7,7 @@
 	import CaretUpDown from 'phosphor-icons-svelte/IconCaretUpDownRegular.svelte';
 
 	import Logo from '$lib/icons/logo.svelte';
-	import { PersistedState } from 'runed';
+	import { PersistedState, useDebounce } from 'runed';
 	import { Input } from '$lib/components/ui/input';
 	import TooltipLabel from './tooltip-label.svelte';
 	import Button from './ui/button/button.svelte';
@@ -31,8 +31,29 @@
 
 	let dialogOpen = $state(false);
 	let testSuccess: boolean | null = $state(null);
+	let testing = $state(false);
 
 	let host = $state('');
+
+	const debouncedTest = useDebounce(async () => {
+		testSuccess = null;
+		testing = true;
+		try {
+			const res = await fetch(`http://${host}/api/v1/registry`);
+			await tick();
+			testSuccess = res.status === 200;
+		} catch {
+			await tick();
+			testSuccess = false;
+		}
+		testing = false;
+	}, 250);
+
+	const testConnection = () => {
+		testSuccess = null;
+		testing = true;
+		debouncedTest();
+	};
 
 	let {
 		onSelect
@@ -101,7 +122,7 @@
 		<form>
 			<section class="grid grid-cols-2">
 				<TooltipLabel>Host</TooltipLabel>
-				<Input placeholder="localhost:5555" bind:value={host} />
+				<Input placeholder="localhost:5555" bind:value={host} onkeypress={testConnection} />
 			</section>
 		</form>
 		<Dialog.Footer class="items-center">
@@ -112,19 +133,12 @@
 			{/if}
 			<Button
 				variant="outline"
-				onclick={async (e) => {
+				disabled={testing}
+				onclick={(e) => {
 					e.preventDefault();
 					testSuccess = null;
-					setTimeout(async () => {
-						try {
-							const res = await fetch(`http://${host}/api/v1/registry`);
-							await tick();
-							testSuccess = res.status === 200;
-						} catch {
-							await tick();
-							testSuccess = false;
-						}
-					}, 100);
+					testing = true;
+					testConnection();
 				}}>Test</Button
 			>
 			<Button
