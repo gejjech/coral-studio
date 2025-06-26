@@ -15,7 +15,13 @@
 	import { Label } from '$lib/components/ui/label';
 
 	import { sessionCtx, type Agent, type RegistryAgent } from '$lib/threads';
-	import { ChevronDown, MoonIcon, Plus, PlusIcon, RefreshCw, SunIcon } from '@lucide/svelte';
+
+	import ChevronDown from 'phosphor-icons-svelte/IconCaretDownRegular.svelte';
+	import MoonIcon from 'phosphor-icons-svelte/IconMoonRegular.svelte';
+	import SunIcon from 'phosphor-icons-svelte/IconSunRegular.svelte';
+	import RefreshCw from 'phosphor-icons-svelte/IconArrowClockwiseRegular.svelte';
+	import Plus from 'phosphor-icons-svelte/IconPlusRegular.svelte';
+
 	import Badge from './ui/badge/badge.svelte';
 	import { cn } from '$lib/utils';
 	import CreateSession from './create-session.svelte';
