@@ -34,7 +34,7 @@
 	};
 </script>
 
-<section class="group relative overflow-clip rounded-md bg-black/30 p-1 pt-0">
+<section class="group bg-secondary relative overflow-clip rounded-md p-1 pt-0 dark:bg-black/30">
 	<ScrollArea orientation="horizontal" class="group relative size-full ">
 		<code class={cn('relative inline-block w-full px-2 py-3 whitespace-pre', language, className)}>
 			{#if language}
