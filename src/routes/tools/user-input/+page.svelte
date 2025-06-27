@@ -11,13 +11,13 @@
 	import { socketCtx } from '$lib/socket.svelte';
 
 	let ctx = socketCtx.get();
-	let responses: Record<string, string> = $state({});
+	let userQuestions: Record<string, string> = $state({});
 
 	let requests = $derived(Object.values(ctx.userInput.requests ?? {}));
 	$effect(() => {
 		for (const request of requests) {
-			if (request.response !== undefined) {
-				responses[request.id] = request.response;
+			if (request.userQuestion !== undefined) {
+				userQuestions[request.id] = request.userQuestion;
 			}
 		}
 	});
@@ -50,18 +50,19 @@
 					<Card.Header>
 						<h2 class="text-muted-foreground text-sm">{request.sessionId}</h2>
 						<h1>'{request.agentId}' asks:</h1>
-						<q>{request.message}</q>
+						<q>{request.agentRequest}</q>
 					</Card.Header>
 					<Card.Content>
 						<Input
-							bind:value={responses[request.id]}
-							disabled={request.response !== undefined}
+							bind:value={userQuestions[request.id]}
+							disabled={request.userQuestion !== undefined}
 							placeholder="Enter your reply."
 							onkeydown={(e) => {
 								if (e.key != 'Enter') return;
-								ctx.userInput.respond(request.id, responses[request.id]);
+								ctx.userInput.respond(request.id, userQuestions[request.id]);
 							}}
 						/>
+						<p>{request.agentAnswer}</p>
 					</Card.Content>
 				</Card.Root>
 			{/each}
