@@ -6,8 +6,8 @@
 	const {
 		tooltip,
 		class: className,
-		child: labelChild
-	}: { tooltip?: string; class: string; child?: Snippet } = $props();
+		children: labelChild
+	}: { tooltip?: string; class?: string; children?: Snippet } = $props();
 </script>
 
 <Tooltip.Provider>

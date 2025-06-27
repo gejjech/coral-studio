@@ -6,8 +6,6 @@
 </script>
 
 <svg
-	width="381"
-	height="381"
 	viewBox="0 0 381 381"
 	fill="none"
 	xmlns="http://www.w3.org/2000/svg"

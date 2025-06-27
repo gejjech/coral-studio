@@ -34,7 +34,7 @@
 	};
 </script>
 
-<section class="group bg-secondary relative overflow-clip rounded-md p-1 pt-0">
+<section class="group bg-secondary relative overflow-clip rounded-md p-1 pt-0 dark:bg-black/30">
 	<ScrollArea orientation="horizontal" class="group relative size-full ">
 		<code class={cn('relative inline-block w-full px-2 py-3 whitespace-pre', language, className)}>
 			{#if language}
@@ -62,23 +62,21 @@
 </section>
 
 <style lang="postcss">
-	@layer components {
-		code.json :global {
-			.string {
-				color: green;
-			}
-			.number {
-				color: darkorange;
-			}
-			.boolean {
-				color: blue;
-			}
-			.null {
-				color: magenta;
-			}
-			.key {
-				color: red;
-			}
+	code.json :global {
+		.string {
+			color: oklch(0.577 0.1853 144.1);
+		}
+		.number {
+			color: oklch(0.7394 0.1853 65.14);
+		}
+		.boolean {
+			color: var(--accent);
+		}
+		.null {
+			color: oklch(0.6614 0.1853 341.49);
+		}
+		.key {
+			color: var(--destructive);
 		}
 	}
 </style>
