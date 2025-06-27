@@ -54,7 +54,7 @@
 								{#if memberThreads.length === 0}
 									<li class="text-muted-foreground text-sm">Not a member of any threads.</li>
 								{/if}
-								{#each memberThreads as thread}
+								{#each memberThreads as thread (thread.id)}
 									<li class="flex items-center">
 										<CaretRight class="size-4" />
 										<Button variant="link" href={`/thread/${thread.id}`} class="font-bold">
