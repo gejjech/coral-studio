@@ -349,7 +349,7 @@
 						</Combobox>
 					</ModalCollapsible>
 					<ModalCollapsible title="Groups">
-						<p class="text-muted-foreground text-sm">
+						<p class="text-muted-foreground text-sm leading-tight">
 							Define a list of groups, where each agent in a group can all interact.
 						</p>
 						<ul class="mt-2 flex flex-col gap-1">
