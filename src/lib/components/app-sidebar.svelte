@@ -194,6 +194,7 @@
 						sumBadges: true,
 						items: conn
 							? Object.values(conn.threads).map((thread) => ({
+									id: thread.id,
 									title: thread.name,
 									url: `/thread/${thread.id}`,
 									badge: thread.unread

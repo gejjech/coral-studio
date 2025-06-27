@@ -3,6 +3,17 @@ import type { CustomTool } from '$lib/threads';
 import type { Handle, RequestEvent } from '@sveltejs/kit';
 import { io, Socket } from 'socket.io-client';
 
+let questions: {
+	[sessionAgentId: string]: {
+		id: string;
+		sessionId: string;
+		agentId: string;
+		agentRequest: string;
+		userQuestion?: string;
+		agentAnswer?: string;
+	};
+} = {};
+
 type MaybePromise<T> = Promise<T> | T;
 const toolCalls: {
 	[K in keyof typeof tools]: ({
@@ -17,17 +28,42 @@ const toolCalls: {
 		getSock: () => Socket;
 	}) => MaybePromise<Response>;
 } = {
-	'user-input': ({ sessionId, agentId, getSock, body }) => {
+	'user-input-request': ({ sessionId, agentId, getSock, body }) => {
 		const sock = getSock();
 		const id = crypto.randomUUID();
-		sock.emit('request', { id, sessionId, agentId, message: body?.message });
+		const q = {
+			id,
+			sessionId,
+			agentId,
+			agentRequest: body?.message as string,
+			userQuestion: undefined,
+			agentAnswer: undefined
+		};
+
+		questions[`${sessionId}-${agentId}`] = q;
+		sock.emit('agent_request', q);
 		return new Promise((res) => {
-			sock.on('response', ({ id: resId, value }) => {
-				console.log('response', { id, resId, value });
+			sock.on('user_response', ({ id: resId, value }) => {
+				questions[`${sessionId}-${agentId}`].userQuestion = value;
+				console.log('user_response', { id, resId, value });
 				if (resId !== id) return;
 				res(new Response(value));
 			});
 		});
+	},
+	'user-input-respond': ({ sessionId, agentId, getSock, body }) => {
+		const q = questions[`${sessionId}-${agentId}`];
+		if (!q)
+			return new Response(
+				'Cannot respond to the last question, since no user question has been asked!',
+				{
+					status: 404
+				}
+			);
+		q.agentAnswer = body?.response as string;
+		const sock = getSock();
+		sock.emit('agent_answer', { id: q.id, answer: q.agentAnswer });
+		return new Response(q.agentAnswer);
 	}
 };
 

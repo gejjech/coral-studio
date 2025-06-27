@@ -26,10 +26,11 @@ export class UserInput {
 	public requests: {
 		[id: string]: {
 			id: string;
-			message: string;
 			sessionId: string;
 			agentId: string;
-			response?: string;
+			agentRequest: string;
+			userQuestion?: string;
+			agentAnswer?: string;
 		};
 	} = $state({});
 	constructor() {
@@ -44,15 +45,19 @@ export class UserInput {
 		this.sock.onAny((event, ...args) => {
 			console.log('user-input:', { event, args });
 		});
-		this.sock.on('request', (req) => {
-			console.log('request', req);
+		this.sock.on('agent_request', (req) => {
+			console.log('agent_request', req);
 			this.requests[req.id] = req;
+		});
+		this.sock.on('agent_answer', (req) => {
+			console.log('agent_answer', req);
+			this.requests[req.id].agentAnswer = req.answer;
 		});
 	}
 
 	respond(id: string, value: string) {
-		this.requests[id].response = value;
-		this.sock.emit('response', { id, value });
+		this.requests[id].userQuestion = value;
+		this.sock.emit('user_response', { id, value });
 	}
 }
 export const socketCtx = new Context<{

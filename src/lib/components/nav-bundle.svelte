@@ -17,6 +17,7 @@
 			icon?: Component;
 			sumBadges?: boolean;
 			items: {
+				id?: string;
 				title: string;
 				url: string;
 				badge?: number;
@@ -48,7 +49,7 @@
 				</Collapsible.Trigger>
 				<Collapsible.Content>
 					<Sidebar.MenuSub>
-						{#each item.items as subItem, i (subItem.title)}
+						{#each item.items as subItem, i (subItem.id ?? subItem.title)}
 							<Sidebar.MenuSubItem>
 								<Sidebar.MenuSubButton isActive={activeSubitems[i]}>
 									{#snippet child({ props })}
