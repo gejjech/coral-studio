@@ -35,48 +35,46 @@
 			: 0}
 		<Collapsible.Root open={activeSubitems.indexOf(true) != -1} class="group/collapsible">
 			{#snippet child({ props })}
-				<Sidebar.MenuItem {...props}>
-					<Collapsible.Trigger disabled={item.items.length === 0}>
-						{#snippet child({ props })}
-							<SidebarLink
-								{...props}
-								title={item.title}
-								icon={item.icon}
-								badge={badgeSum}
-								collapsible
-							/>
-						{/snippet}
-					</Collapsible.Trigger>
-					<Collapsible.Content>
-						<Sidebar.MenuSub>
-							{#each item.items as subItem, i (subItem.title)}
-								<Sidebar.MenuSubItem>
-									<Sidebar.MenuSubButton isActive={activeSubitems[i]}>
-										{#snippet child({ props })}
-											<Tooltip.Provider>
-												<Tooltip.Root>
-													<Tooltip.Trigger {...props}>
-														{#snippet child({ props })}
-															<a href={subItem.url} {...props}>
-																<span class="truncate font-sans font-medium tracking-wide"
-																	>{subItem.title}</span
-																>
-																{#if subItem.badge}
-																	<Badge>{subItem.badge}</Badge>
-																{/if}
-															</a>
-														{/snippet}
-													</Tooltip.Trigger>
-													<Tooltip.Content><p>{subItem.title}</p></Tooltip.Content>
-												</Tooltip.Root>
-											</Tooltip.Provider>
-										{/snippet}
-									</Sidebar.MenuSubButton>
-								</Sidebar.MenuSubItem>
-							{/each}
-						</Sidebar.MenuSub>
-					</Collapsible.Content>
-				</Sidebar.MenuItem>
+				<Collapsible.Trigger {...props} disabled={item.items.length === 0}>
+					{#snippet child({ props })}
+						<SidebarLink
+							{...props}
+							title={item.title}
+							icon={item.icon}
+							badge={badgeSum}
+							collapsible
+						/>
+					{/snippet}
+				</Collapsible.Trigger>
+				<Collapsible.Content>
+					<Sidebar.MenuSub>
+						{#each item.items as subItem, i (subItem.title)}
+							<Sidebar.MenuSubItem>
+								<Sidebar.MenuSubButton isActive={activeSubitems[i]}>
+									{#snippet child({ props })}
+										<Tooltip.Provider>
+											<Tooltip.Root>
+												<Tooltip.Trigger {...props}>
+													{#snippet child({ props })}
+														<a href={subItem.url} {...props}>
+															<span class="truncate font-sans font-medium tracking-wide"
+																>{subItem.title}</span
+															>
+															{#if subItem.badge}
+																<Badge>{subItem.badge}</Badge>
+															{/if}
+														</a>
+													{/snippet}
+												</Tooltip.Trigger>
+												<Tooltip.Content><p>{subItem.title}</p></Tooltip.Content>
+											</Tooltip.Root>
+										</Tooltip.Provider>
+									{/snippet}
+								</Sidebar.MenuSubButton>
+							</Sidebar.MenuSubItem>
+						{/each}
+					</Sidebar.MenuSub>
+				</Collapsible.Content>
 			{/snippet}
 		</Collapsible.Root>
 	{/each}
