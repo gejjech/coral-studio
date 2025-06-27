@@ -19,7 +19,7 @@
 	import ChevronDown from 'phosphor-icons-svelte/IconCaretDownRegular.svelte';
 	import MoonIcon from 'phosphor-icons-svelte/IconMoonRegular.svelte';
 	import SunIcon from 'phosphor-icons-svelte/IconSunRegular.svelte';
-	import RefreshCw from 'phosphor-icons-svelte/IconArrowClockwiseRegular.svelte';
+	import IconArrowsClockwise from 'phosphor-icons-svelte/IconArrowsClockwiseRegular.svelte';
 	import Plus from 'phosphor-icons-svelte/IconPlusRegular.svelte';
 	import IconChats from 'phosphor-icons-svelte/IconChatsRegular.svelte';
 	import IconPlugsRegular from 'phosphor-icons-svelte/IconPlugsRegular.svelte';
@@ -128,12 +128,12 @@
 				</Tooltip.Provider>
 				<Button
 					size="icon"
-					variant="outline"
+					variant="ghost"
 					class="size-7"
 					disabled={connecting}
 					onclick={() => refreshAgents()}
 				>
-					<RefreshCw class={cn('size-3', connecting && 'animate-spin')} />
+					<IconArrowsClockwise class={cn('size-4', connecting && 'animate-spin')} />
 				</Button>
 			</Sidebar.GroupLabel>
 			<Sidebar.GroupContent>
