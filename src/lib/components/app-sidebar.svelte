@@ -14,17 +14,33 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Label } from '$lib/components/ui/label';
 
-	import { sessionCtx, type Agent, type RegistryAgent } from '$lib/threads';
-	import { ChevronDown, MoonIcon, Plus, PlusIcon, RefreshCw, SunIcon } from '@lucide/svelte';
+	import { sessionCtx, type RegistryAgent } from '$lib/threads';
+
+	import ChevronDown from 'phosphor-icons-svelte/IconCaretDownRegular.svelte';
+	import MoonIcon from 'phosphor-icons-svelte/IconMoonRegular.svelte';
+	import SunIcon from 'phosphor-icons-svelte/IconSunRegular.svelte';
+	import IconArrowsClockwise from 'phosphor-icons-svelte/IconArrowsClockwiseRegular.svelte';
+	import Plus from 'phosphor-icons-svelte/IconPlusRegular.svelte';
+	import IconChats from 'phosphor-icons-svelte/IconChatsRegular.svelte';
+	import IconPlugsRegular from 'phosphor-icons-svelte/IconPlugsRegular.svelte';
+	import IconRobot from 'phosphor-icons-svelte/IconRobotRegular.svelte';
+	import IconToolbox from 'phosphor-icons-svelte/IconToolboxRegular.svelte';
+	import IconPackage from 'phosphor-icons-svelte/IconPackageRegular.svelte';
+	import IconNotepad from 'phosphor-icons-svelte/IconNotepadRegular.svelte';
+
 	import Badge from './ui/badge/badge.svelte';
 	import { cn } from '$lib/utils';
 	import CreateSession from './create-session.svelte';
-	import { PersistedState, useDebounce } from 'runed';
+	import { PersistedState, useDebounce, watch } from 'runed';
 	import { Session } from '$lib/session.svelte';
-	import { onMount, tick } from 'svelte';
+	import { onMount } from 'svelte';
 	import { socketCtx } from '$lib/socket.svelte';
 	import { toggleMode } from 'mode-watcher';
 	import { page } from '$app/state';
+	import Separator from './ui/separator/separator.svelte';
+	import ServerSwitcher from './server-switcher.svelte';
+	import NavBundle from './nav-bundle.svelte';
+	import SidebarLink from './sidebar-link.svelte';
 
 	let sessCtx = sessionCtx.get();
 	let tools = socketCtx.get();
@@ -33,37 +49,26 @@
 	let threadName = $state('');
 	let participants: string[] = $state([]);
 
-	let host = new PersistedState('host', '127.0.0.1:5555');
-	let appId = new PersistedState('appId', 'appId');
-	let privKey = new PersistedState('privKey', 'privKey');
-
 	let connecting = $state(false);
 	let error: string | null = $state(null);
 
 	let createSessionOpen = $state(false);
 
 	const refreshAgents = async () => {
+		if (!sessCtx.connection) return;
 		try {
 			connecting = true;
-			sessCtx.connection = null;
 			error = null;
 			sessCtx.registry = null;
-			const agents = (await fetch(`http://${host.current}/api/v1/registry`).then((res) =>
+			const agents = (await fetch(`http://${sessCtx.connection.host}/api/v1/registry`).then((res) =>
 				res.json()
 			)) as RegistryAgent[];
 			sessCtx.registry = Object.fromEntries(agents.map((agent) => [agent.id, agent]));
 
-			const sessions = (await fetch(`http://${host.current}/api/v1/sessions`).then((res) =>
-				res.json()
+			const sessions = (await fetch(`http://${sessCtx.connection.host}/api/v1/sessions`).then(
+				(res) => res.json()
 			)) as string[];
 			sessCtx.sessions = sessions;
-
-			sessCtx.connection = {
-				host: host.current,
-				appId: appId.current,
-				privacyKey: privKey.current
-			};
-
 			connecting = false;
 		} catch (e) {
 			connecting = false;
@@ -72,7 +77,7 @@
 		}
 	};
 
-	onMount(() => refreshAgents());
+	// onMount(() => refreshAgents());
 
 	const debouncedRefresh = useDebounce(() => refreshAgents(), 400);
 	const inputRefresh = () => {
@@ -85,19 +90,31 @@
 
 <Sidebar.Root>
 	<Sidebar.Header>
-		<Sidebar.MenuButton class="text-lg font-bold">
-			{#snippet child({ props })}
-				<a href="/" {...props}><Logo class="text-foreground" />coral-studio</a>
-			{/snippet}
-		</Sidebar.MenuButton>
-		<Sidebar.Group class="-mt-3">
+		<ServerSwitcher
+			onSelect={(host) => {
+				sessCtx.connection = {
+					host,
+					appId: sessCtx.connection?.appId ?? 'app',
+					privacyKey: sessCtx.connection?.privacyKey ?? 'priv'
+				};
+				refreshAgents();
+			}}
+		/>
+	</Sidebar.Header>
+	<Sidebar.Content class="gap-0">
+		<Sidebar.Group>
 			<Sidebar.GroupLabel class="text-sidebar-foreground flex flex-row gap-1 pr-0 text-sm">
-				<span>Connection</span>
+				<span class="text-muted-foreground font-sans font-medium tracking-wide select-none"
+					>Server</span
+				>
 				<Tooltip.Provider>
 					<Tooltip.Root>
 						<Tooltip.Trigger disabled={error === null} class="flex-grow text-right ">
 							<span
-								class={cn('text-muted-foreground text-sm font-normal', error && 'text-destructive')}
+								class={cn(
+									'text-muted-foreground font-mono text-xs font-normal',
+									error && 'text-destructive'
+								)}
 							>
 								{#if error}
 									Error
@@ -111,220 +128,101 @@
 				</Tooltip.Provider>
 				<Button
 					size="icon"
-					variant="outline"
+					variant="ghost"
 					class="size-7"
 					disabled={connecting}
 					onclick={() => refreshAgents()}
 				>
-					<RefreshCw class={cn('size-3', connecting && 'animate-spin')} />
+					<IconArrowsClockwise class={cn('size-4', connecting && 'animate-spin')} />
 				</Button>
 			</Sidebar.GroupLabel>
 			<Sidebar.GroupContent>
 				<Sidebar.Menu>
-					<Input placeholder="host" bind:value={host.current} oninput={inputRefresh} />
-					<div class="flex flex-row gap-1">
-						<Input placeholder="app id" bind:value={appId.current} oninput={inputRefresh} />
-						<Input placeholder="privacy key" bind:value={privKey.current} oninput={inputRefresh} />
-					</div>
-					<DropdownMenu.Root>
-						<DropdownMenu.Trigger>
-							{#snippet child({ props })}
-								<Sidebar.MenuButton
-									{...props}
-									aria-invalid={sessCtx.session === null || !sessCtx.session.connected}
-									class="ring-offset-background aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive aria-invalid:ring"
-								>
-									<span class="truncate"
-										>{sessCtx.session && sessCtx.session.connected
-											? sessCtx.session.session
-											: 'Select Session'}</span
-									>
-									<ChevronDown class="ml-auto" />
-								</Sidebar.MenuButton>
-							{/snippet}
-						</DropdownMenu.Trigger>
-						<DropdownMenu.Content class="w-(--bits-dropdown-menu-anchor-width)">
-							{#if sessCtx.sessions && sessCtx.sessions.length > 0}
-								{#each sessCtx.sessions as session}
-									<DropdownMenu.Item
-										onSelect={() => {
-											if (!sessCtx.connection) return;
-											sessCtx.session = new Session({ ...sessCtx.connection, session });
-										}}
-									>
-										<span class="truncate">{session}</span>
-									</DropdownMenu.Item>
-								{/each}
-								<DropdownMenu.Separator />
-							{/if}
+					<SidebarLink url="/registry" icon={IconPackage} title="Agent Registry" />
+					<SidebarLink url="/logs" icon={IconNotepad} title="Logs" />
+				</Sidebar.Menu>
+			</Sidebar.GroupContent>
+		</Sidebar.Group>
+		<Sidebar.Separator />
+		<Sidebar.Group>
+			<Sidebar.GroupLabel class="text-muted-foreground">Session</Sidebar.GroupLabel>
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger>
+					{#snippet child({ props })}
+						<Sidebar.MenuButton
+							{...props}
+							aria-invalid={sessCtx.session === null || !sessCtx.session.connected}
+							class="border-input ring-offset-background aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive m-[0.5px] mb-1 aria-invalid:ring"
+						>
+							<span class="truncate"
+								>{sessCtx.session && sessCtx.session.connected
+									? sessCtx.session.session
+									: 'Select Session'}</span
+							>
+							<ChevronDown class="ml-auto" />
+						</Sidebar.MenuButton>
+					{/snippet}
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content class="w-(--bits-dropdown-menu-anchor-width)">
+					{#if sessCtx.sessions && sessCtx.sessions.length > 0}
+						{#each sessCtx.sessions as session}
 							<DropdownMenu.Item
-								onclick={() => {
-									createSessionOpen = true;
+								onSelect={() => {
+									if (!sessCtx.connection) return;
+									sessCtx.session = new Session({ ...sessCtx.connection, session });
 								}}
 							>
-								<span>New session</span>
+								<span class="truncate">{session}</span>
 							</DropdownMenu.Item>
-						</DropdownMenu.Content>
-					</DropdownMenu.Root>
-				</Sidebar.Menu>
-			</Sidebar.GroupContent>
-		</Sidebar.Group>
-	</Sidebar.Header>
-	<Sidebar.Content class="gap-0">
-		<Sidebar.Group>
-			<Sidebar.GroupLabel
-				class="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm"
-			>
-				Threads
-				<!-- <ChevronRightIcon -->
-				<!-- 	class="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" -->
-				<!-- /> -->
-			</Sidebar.GroupLabel>
-
-			<Dialog.Root>
-				<Dialog.Trigger
-					disabled={!conn?.appId ||
-						!conn?.host ||
-						!conn?.privKey ||
-						!conn?.session ||
-						!conn?.agentId}
-				>
-					{#snippet child({ props })}
-						<Sidebar.GroupAction {...props} title="Create Thread">
-							<Plus /> <span class="sr-only">Create Thread</span>
-						</Sidebar.GroupAction>
-					{/snippet}
-				</Dialog.Trigger>
-				<Dialog.Content>
-					<Dialog.Header>
-						<Dialog.Title>New Thread</Dialog.Title>
-						<Dialog.Description>Create a new thread.</Dialog.Description>
-					</Dialog.Header>
-					<div class="grid gap-4 py-4">
-						<div class="grid grid-cols-4 items-center gap-4">
-							<Label for="name" class="text-right">Name</Label>
-							<Input id="name" bind:value={threadName} class="col-span-3" autocomplete="name" />
-						</div>
-						<div class="grid grid-cols-4 items-center gap-4">
-							<Label class="text-right">Participants</Label>
-							<Select.Root type="multiple" bind:value={participants}>
-								<Select.Trigger class="w-[180px]"></Select.Trigger>
-								<Select.Content>
-									{#each Object.keys(conn?.agents ?? {}) as name}
-										<Select.Item value={name}>{name}</Select.Item>
-									{/each}
-									{#if Object.values(conn?.agents ?? {}).length == 0}
-										<p class="text-muted-foreground text-center text-sm">No agents registered.</p>
-									{/if}
-								</Select.Content>
-							</Select.Root>
-						</div>
-					</div>
-
-					<Dialog.Footer>
-						<Button
-							type="submit"
-							onclick={() => {
-								if (
-									!conn?.appId ||
-									!conn?.host ||
-									!conn?.privKey ||
-									!conn?.session ||
-									!conn?.agentId
-								)
-									return;
-								fetch(
-									`http://${conn.host}/debug/${conn.appId}/${conn.privKey}/${conn.session}/${conn.agentId}/thread/`,
-									{
-										method: 'POST',
-										headers: {
-											'Content-Type': 'application/json'
-										},
-										body: JSON.stringify({
-											threadName,
-											participantIds: participants ?? []
-										})
-									}
-								);
-							}}>Create</Button
-						>
-					</Dialog.Footer>
-				</Dialog.Content>
-			</Dialog.Root>
-			<Sidebar.GroupContent>
-				<Sidebar.Menu>
-					{#each Object.values(conn?.threads ?? {}) as thread (thread.id)}
-						{@const url = `/thread/${thread.id}`}
-						<Sidebar.MenuItem>
-							<Sidebar.MenuButton class="truncate" isActive={page.url.pathname === url}>
-								{#snippet child({ props })}
-									<a href={url} {...props}
-										>{thread.name}
-										<Badge class={cn(thread.unread == 0 && 'hidden')}>{thread.unread}</Badge>
-									</a>
-								{/snippet}
-							</Sidebar.MenuButton>
-						</Sidebar.MenuItem>
-					{/each}
-				</Sidebar.Menu>
-			</Sidebar.GroupContent>
-		</Sidebar.Group>
-		<Sidebar.Group>
-			<Sidebar.GroupLabel
-				class="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm"
-			>
-				Agents
-				<!-- <ChevronRightIcon -->
-				<!-- 	class="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" -->
-				<!-- /> -->
-			</Sidebar.GroupLabel>
-			<Sidebar.GroupContent>
-				<Sidebar.Menu>
-					{#each Object.entries(conn?.agents ?? {}) as [name, agent] (name)}
-						{@const url = `/agent/${name}`}
-						<Sidebar.MenuItem>
-							<Sidebar.MenuButton isActive={page.url.pathname === url}>
-								{#snippet child({ props })}
-									<a href={url} {...props}
-										><span class="w-full truncate">{name}</span>
-										<!-- <Badge class={cn(thread.unread == 0 && 'hidden')}>{thread.unread}</Badge> -->
-									</a>
-								{/snippet}
-							</Sidebar.MenuButton>
-						</Sidebar.MenuItem>
-					{/each}
-				</Sidebar.Menu>
-			</Sidebar.GroupContent>
-		</Sidebar.Group>
-		<Sidebar.Group>
-			<Sidebar.GroupLabel
-				class="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sm"
-			>
-				Tools
-				<!-- <ChevronRightIcon -->
-				<!-- 	class="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" -->
-				<!-- /> -->
-			</Sidebar.GroupLabel>
-			<Sidebar.GroupContent>
-				<Sidebar.Menu>
-					<Sidebar.MenuItem>
-						<Sidebar.MenuButton
-							class="truncate"
-							isActive={page.url.pathname === '/tools/user-input'}
-						>
-							{#snippet child({ props })}
-								{@const reqs = Object.values(tools.userInput.requests).filter(
+						{/each}
+						<DropdownMenu.Separator />
+					{/if}
+					<DropdownMenu.Item
+						onclick={() => {
+							createSessionOpen = true;
+						}}
+					>
+						<span>New session</span>
+					</DropdownMenu.Item>
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
+			<NavBundle
+				items={[
+					{
+						title: 'Threads',
+						icon: IconChats,
+						sumBadges: true,
+						items: conn
+							? Object.values(conn.threads).map((thread) => ({
+									title: thread.name,
+									url: `/thread/${thread.id}`,
+									badge: thread.unread
+								}))
+							: []
+					},
+					{
+						title: 'Agents',
+						icon: IconRobot,
+						items: conn
+							? Object.keys(conn.agents).map((item) => ({ title: item, url: `/agent/${item}` }))
+							: []
+					},
+					{
+						title: 'Tools',
+						icon: IconToolbox,
+						sumBadges: true,
+						items: [
+							{
+								title: 'User Input',
+								url: '/tools/user-input',
+								badge: Object.values(tools.userInput.requests).filter(
 									(req) => req.response === undefined
-								).length}
-								<a href="/tools/user-input" {...props}
-									>User Input
-									<Badge class={cn(reqs == 0 && 'hidden')}>{reqs}</Badge>
-								</a>
-							{/snippet}
-						</Sidebar.MenuButton>
-					</Sidebar.MenuItem>
-				</Sidebar.Menu>
-			</Sidebar.GroupContent>
+								).length
+							}
+						]
+					}
+				]}
+			/>
 		</Sidebar.Group>
 	</Sidebar.Content>
 	<Sidebar.Footer>

@@ -329,10 +329,10 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@lucide/svelte@^0.515.0":
-  version "0.515.0"
-  resolved "https://registry.yarnpkg.com/@lucide/svelte/-/svelte-0.515.0.tgz#f25d03b05b436fe01746a183ae9b759df83af930"
-  integrity sha512-CEAyqcZmNBfYzVgaRmK2RFJP5tnbXxekRyDk0XX/eZQRfsJmkDvmQwXNX8C869BgNeryzmrRyjHhUL6g9ZOHNA==
+"@lucide/svelte@^0.523.0":
+  version "0.523.0"
+  resolved "https://registry.yarnpkg.com/@lucide/svelte/-/svelte-0.523.0.tgz#34f8e7139c2b9d233a3f61e02509acf899d96c09"
+  integrity sha512-t6CNxUAC7to9IPQv+yaJD8OlpXVeEL7wT1nw5+lx62HoBnkO6//xYZSTkV8Ia3bqtoF4deI3Pjff/8cPyQjiCw==
 
 "@napi-rs/wasm-runtime@^0.2.9":
   version "0.2.10"
@@ -1736,6 +1736,11 @@ path-parse@^1.0.7:
   version "1.0.7"
   resolved "https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.7.tgz#fbc114b60ca42b30d9daf5858e4bd68bbedb6735"
   integrity sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==
+
+phosphor-icons-svelte@^2.0.9:
+  version "2.0.9"
+  resolved "https://registry.yarnpkg.com/phosphor-icons-svelte/-/phosphor-icons-svelte-2.0.9.tgz#19ce3197bbc1cc64d38e18d43057a8da2e0e73ea"
+  integrity sha512-iNmOpe8c6iFvqZp1NH1KNoHYRAOOhnBQ6yrGH+pZucoNnMKbD/MCmR2sPNvbteLvX41UtuezVFAd5eMaC/9wmg==
 
 picocolors@^1.0.0, picocolors@^1.1.1:
   version "1.1.1"

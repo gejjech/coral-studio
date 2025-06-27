@@ -7,7 +7,8 @@
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { sessionCtx } from '$lib/threads';
 	import { Button } from '$lib/components/ui/button';
-	import { ChevronRight, ExternalLink } from '@lucide/svelte';
+	import CaretRight from 'phosphor-icons-svelte/IconCaretRightRegular.svelte';
+	import ExternalLink from 'phosphor-icons-svelte/IconArrowsOutRegular.svelte';
 
 	let ctx = sessionCtx.get();
 	let conn = $derived(ctx.session);
@@ -55,7 +56,7 @@
 								{/if}
 								{#each memberThreads as thread}
 									<li class="flex items-center">
-										<ChevronRight class="size-4" />
+										<CaretRight class="size-4" />
 										<Button variant="link" href={`/thread/${thread.id}`} class="font-bold">
 											{thread.name}<ExternalLink class="size-3" />
 										</Button>
