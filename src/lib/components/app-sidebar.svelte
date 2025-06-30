@@ -30,6 +30,7 @@
 	import ServerSwitcher from './server-switcher.svelte';
 	import NavBundle from './nav-bundle.svelte';
 	import SidebarLink from './sidebar-link.svelte';
+	import Tour from './tour/tour.svelte';
 
 	let sessCtx = sessionCtx.get();
 	let tools = socketCtx.get();
@@ -62,13 +63,30 @@
 			error = `${e}`;
 		}
 	};
+
+	let serverSwitcher = $state(null) as unknown as HTMLButtonElement;
+	let sessionSwitcher = $state(null) as unknown as HTMLButtonElement;
 </script>
 
 <CreateSession bind:open={createSessionOpen} agents={sessCtx.registry ?? {}} />
-
+<Tour
+	items={[
+		{
+			target: serverSwitcher,
+			side: 'right',
+			text: 'Welcome to Coral Studio!\n\nFirst, connect to your server here.'
+		},
+		{
+			target: sessionSwitcher,
+			side: 'right',
+			text: 'Then, once connected:\n\nCreate or connect to a session here.'
+		}
+	]}
+/>
 <Sidebar.Root>
 	<Sidebar.Header>
 		<ServerSwitcher
+			bind:ref={serverSwitcher}
 			onSelect={(host) => {
 				sessCtx.connection = {
 					host,
@@ -129,6 +147,7 @@
 					{#snippet child({ props })}
 						<Sidebar.MenuButton
 							{...props}
+							bind:ref={sessionSwitcher}
 							aria-invalid={sessCtx.session === null || !sessCtx.session.connected}
 							class="border-input ring-offset-background aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive m-[0.5px] mb-1 aria-invalid:ring"
 						>
