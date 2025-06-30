@@ -3,41 +3,30 @@
 
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar';
-	import * as Select from '$lib/components/ui/select';
-	import * as Dialog from '$lib/components/ui/dialog';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 
-	import Logo from '$lib/icons/logo.svelte';
-
 	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-
-	import { sessionCtx, type RegistryAgent } from '$lib/threads';
 
 	import ChevronDown from 'phosphor-icons-svelte/IconCaretDownRegular.svelte';
 	import MoonIcon from 'phosphor-icons-svelte/IconMoonRegular.svelte';
 	import SunIcon from 'phosphor-icons-svelte/IconSunRegular.svelte';
 	import IconArrowsClockwise from 'phosphor-icons-svelte/IconArrowsClockwiseRegular.svelte';
-	import Plus from 'phosphor-icons-svelte/IconPlusRegular.svelte';
 	import IconChats from 'phosphor-icons-svelte/IconChatsRegular.svelte';
-	import IconPlugsRegular from 'phosphor-icons-svelte/IconPlugsRegular.svelte';
 	import IconRobot from 'phosphor-icons-svelte/IconRobotRegular.svelte';
 	import IconToolbox from 'phosphor-icons-svelte/IconToolboxRegular.svelte';
 	import IconPackage from 'phosphor-icons-svelte/IconPackageRegular.svelte';
 	import IconNotepad from 'phosphor-icons-svelte/IconNotepadRegular.svelte';
 
-	import Badge from './ui/badge/badge.svelte';
 	import { cn } from '$lib/utils';
-	import CreateSession from './create-session.svelte';
-	import { PersistedState, useDebounce, watch } from 'runed';
+	import { sessionCtx, type RegistryAgent } from '$lib/threads';
 	import { Session } from '$lib/session.svelte';
-	import { onMount } from 'svelte';
+
 	import { socketCtx } from '$lib/socket.svelte';
 	import { toggleMode } from 'mode-watcher';
-	import { page } from '$app/state';
-	import Separator from './ui/separator/separator.svelte';
+
+	import CreateSession from '$lib/components/dialogs/create-session.svelte';
+
 	import ServerSwitcher from './server-switcher.svelte';
 	import NavBundle from './nav-bundle.svelte';
 	import SidebarLink from './sidebar-link.svelte';
@@ -45,9 +34,6 @@
 	let sessCtx = sessionCtx.get();
 	let tools = socketCtx.get();
 	let conn = $derived(sessCtx.session);
-
-	let threadName = $state('');
-	let participants: string[] = $state([]);
 
 	let connecting = $state(false);
 	let error: string | null = $state(null);
@@ -75,14 +61,6 @@
 			sessCtx.registry = null;
 			error = `${e}`;
 		}
-	};
-
-	// onMount(() => refreshAgents());
-
-	const debouncedRefresh = useDebounce(() => refreshAgents(), 400);
-	const inputRefresh = () => {
-		connecting = true;
-		debouncedRefresh();
 	};
 </script>
 
@@ -217,7 +195,7 @@
 								title: 'User Input',
 								url: '/tools/user-input',
 								badge: Object.values(tools.userInput.requests).filter(
-									(req) => req.response === undefined
+									(req) => req.userQuestion === undefined
 								).length
 							}
 						]

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Textarea } from '$lib/components/ui/textarea';
+	import Button from '$lib/components/ui/button/button.svelte';
+
 	import type { Snippet } from 'svelte';
-	import Button from './ui/button/button.svelte';
 
 	let {
 		onImport,
