@@ -11,10 +11,11 @@
 	import CaretRight from 'phosphor-icons-svelte/IconCaretRightRegular.svelte';
 	import ExternalLink from 'phosphor-icons-svelte/IconArrowsOutRegular.svelte';
 	import ScrollArea from '$lib/components/ui/scroll-area/scroll-area.svelte';
-	import { AgentLogs } from '$lib/logs.svelte';
+	import { AgentLogs, logContext } from '$lib/logs.svelte';
 	import { cn } from '$lib/utils';
 
 	let ctx = sessionCtx.get();
+	let logCtx = logContext.get();
 	let conn = $derived(ctx.session);
 
 	let threads = $derived(conn?.threads ?? {});
@@ -27,11 +28,7 @@
 		Object.values(threads).filter((thread) => thread.participants.indexOf(agentName) !== -1)
 	);
 
-	let logs = $derived(
-		ctx.connection !== null && ctx.session !== null
-			? new AgentLogs({ ...ctx.connection, session: ctx.session.session }, agentName)
-			: null
-	);
+	let logs = $derived(logCtx.logs[agentName]);
 	const ts_fmt = (d: Date) =>
 		`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
 </script>

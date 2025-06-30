@@ -1,3 +1,5 @@
+import { Context } from 'runed';
+
 export type Log = {
 	timestamp: number;
 	kind: any;
@@ -50,3 +52,5 @@ export class AgentLogs {
 		};
 	}
 }
+
+export const logContext = new Context<{ logs: { [agentId: string]: AgentLogs } }>('agentLogs');
