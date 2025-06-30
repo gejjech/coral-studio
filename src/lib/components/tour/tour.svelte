@@ -13,13 +13,23 @@
 
 	import * as Popover from '$lib/components/ui/popover';
 	import { Tooltip as TooltipPrimitive } from 'bits-ui';
-	import { Portal } from 'bits-ui';
-	import { Provider } from '../ui/sidebar';
-	import TooltipLabel from '../tooltip-label.svelte';
 	import Button from '../ui/button/button.svelte';
 	import { fade } from 'svelte/transition';
 
-	let open = $state(true);
+	let {
+		open = $bindable(true),
+		items = [],
+		side = 'bottom',
+		arrowClasses,
+		class: className
+	}: {
+		open?: boolean;
+		items: Item[];
+		side?: TooltipPrimitive.ContentProps['side'];
+		arrowClasses?: string;
+		class?: string;
+	} = $props();
+
 	let current = $state(0);
 
 	function getOpen() {
@@ -29,17 +39,6 @@
 	function setOpen(newOpen: boolean) {
 		open = newOpen;
 	}
-	const {
-		items = [],
-		side = 'bottom',
-		arrowClasses,
-		class: className
-	}: {
-		items: Item[];
-		side?: TooltipPrimitive.ContentProps['side'];
-		arrowClasses?: string;
-		class?: string;
-	} = $props();
 
 	const currentItem = $derived(items[current]);
 	const scrimStyle = $derived.by(() => {
@@ -70,7 +69,7 @@
 <Popover.Root>
 	<Popover.Root bind:open={getOpen, setOpen}>
 		<Popover.Content
-			class="transition-transform"
+			class={className}
 			collisionPadding={20}
 			customAnchor={currentItem.target}
 			side={currentItem.side ?? side}

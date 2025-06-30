@@ -31,6 +31,7 @@
 	import NavBundle from './nav-bundle.svelte';
 	import SidebarLink from './sidebar-link.svelte';
 	import Tour from './tour/tour.svelte';
+	import { onMount } from 'svelte';
 
 	let sessCtx = sessionCtx.get();
 	let tools = socketCtx.get();
@@ -38,6 +39,12 @@
 
 	let connecting = $state(false);
 	let error: string | null = $state(null);
+
+	let tourOpen = $state(false);
+
+	onMount(() => {
+		if (sessCtx.connection === null) tourOpen = true;
+	});
 
 	let createSessionOpen = $state(false);
 
@@ -70,6 +77,7 @@
 
 <CreateSession bind:open={createSessionOpen} agents={sessCtx.registry ?? {}} />
 <Tour
+	open={tourOpen}
 	items={[
 		{
 			target: serverSwitcher,

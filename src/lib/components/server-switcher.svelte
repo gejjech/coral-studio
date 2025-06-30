@@ -24,6 +24,9 @@
 		if (servers.current.indexOf(cur) === -1) {
 			selected.current = null;
 		}
+		if (selected.current === null && servers.current.length > 0) {
+			selected.current = servers.current[0];
+		}
 	});
 	onMount(() => {
 		if (selected.current === null) return;
@@ -56,12 +59,17 @@
 		debouncedTest();
 	};
 
+	$effect(() => {
+		value = selected.current;
+	});
+
 	let {
+		value = $bindable(null),
 		ref = $bindable(null),
 		onSelect
 	}: WithElementRef<
 		{
-			value?: string;
+			value?: string | null;
 			onSelect?: (server: string) => void;
 		},
 		HTMLButtonElement
