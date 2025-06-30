@@ -180,14 +180,14 @@
 </script>
 
 {#if ctx.connection}
-<Dialog.Root bind:open>
-	<Dialog.Content
-		class="grid max-h-[90svh] grid-cols-[100%] grid-rows-[max-content_minmax(0,1fr)_max-content] lg:max-w-2xl"
-	>
-		<Dialog.Header>
-			<Dialog.Title>New Session</Dialog.Title>
-			<Dialog.Description>Create a new session.</Dialog.Description>
-		</Dialog.Header>
+	<Dialog.Root bind:open>
+		<Dialog.Content
+			class="grid max-h-[90svh] grid-cols-[100%] grid-rows-[max-content_minmax(0,1fr)_max-content] lg:max-w-2xl"
+		>
+			<Dialog.Header>
+				<Dialog.Title>New Session</Dialog.Title>
+				<Dialog.Description>Create a new session.</Dialog.Description>
+			</Dialog.Header>
 			<ScrollArea class="">
 				<section class="flex max-w-full flex-col gap-2 pr-4">
 					<section class="grid grid-cols-[minmax(0,max-content)_auto] gap-4 gap-y-2 pt-2">
@@ -209,179 +209,8 @@
 					<ClipboardImportDialog onImport={importFromJson}>
 						{#snippet child({ props })}
 							<Button {...props} variant="outline" class="w-fit">Import <ClipboardCopy /></Button>
-                        {/snippet}
-                    </ClipboardImportDialog>
-				<Separator class="mt-2" />
-				<ModalCollapsible title="Agents">
-					<ul class="flex flex-col gap-1">
-						{#each graph.agents as agent, i}
-							<Collapsible.Root class="group/collapsible" open={true}>
-								<div class="flex flex-row items-center gap-1">
-									<Collapsible.Trigger
-										class={cn(buttonVariants({ size: 'icon', variant: 'ghost' }), 'size-8')}
-									>
-										<ChevronRightIcon
-											class="transition-transform group-data-[state=open]/collapsible:rotate-90"
-										/>
-									</Collapsible.Trigger>
-									<Input
-										bind:value={agent.name}
-										placeholder="agent name"
-										aria-invalid={!agent.name || duplicateNames.has(agent.name)}
-									/>
-									<Combobox
-										bind:value={agent.id}
-										options={Object.keys(agents)}
-										onValueChange={(id) => {
-											const newAgent = agents[id];
-											if (!newAgent) return;
-											agent.options = newAgent.options;
-										}}
-										selectPlaceholder="Select an agent..."
-										searchPlaceholder="Search agents..."
-										emptyLabel="No agents found."
-									/>
-									<TwostepButton
-										variant="destructive"
-										size="icon"
-										onclick={() => {
-											graph.agents.splice(i, 1);
-										}}><TrashIcon /></TwostepButton
-									>
-								</div>
-								<Collapsible.Content class="flex flex-col gap-1 p-2 pl-4">
-									<Collapsible.Root class="group/options" open={true}>
-										<Collapsible.Trigger
-											class={cn(
-												buttonVariants({ size: 'icon', variant: 'ghost' }),
-												'flex h-6 w-max flex-row items-center gap-1 px-2 pl-1'
-											)}
-										>
-											<ChevronRightIcon
-												class="transition-transform group-data-[state=open]/options:rotate-90"
-											/>
-											<h3 class="text-sm font-bold">Options</h3>
-										</Collapsible.Trigger>
-										<Collapsible.Content
-											class="grid grid-cols-[max-content_minmax(0,auto)] gap-2 p-2 pl-4"
-										>
-											{#each Object.values(agent.options) as option (option.name)}
-												<Tooltip.Provider>
-													<Tooltip.Root disabled={!option.description}>
-														<Tooltip.Trigger>
-															{#snippet child({ props })}
-																<Label {...props} class="gap-1">
-																	{option.name}
-																	<span class="text-destructive"
-																		>{option.default === null ? '*' : ''}
-																	</span>
-																</Label>
-															{/snippet}
-														</Tooltip.Trigger>
-														<Tooltip.Content>
-															<p>{option.description}</p>
-														</Tooltip.Content>
-													</Tooltip.Root>
-												</Tooltip.Provider>
-												<Input
-													type={/key/i.test(option.name) ? 'password' : 'text'}
-													autocomplete="off"
-													name={option.name}
-													placeholder={option.default !== null ? option.default.toString() : ''}
-													required={option.default === null}
-													aria-invalid={option.default === null && !option.value}
-													bind:value={option.value}
-												/>
-											{/each}
-										</Collapsible.Content>
-									</Collapsible.Root>
-									<Collapsible.Root class="group/tools" open={false}>
-										<Collapsible.Trigger
-											class={cn(
-												buttonVariants({ size: 'icon', variant: 'ghost' }),
-												'flex h-6 w-max flex-row items-center gap-1 px-2 pl-1'
-											)}
-										>
-											<ChevronRightIcon
-												class="transition-transform group-data-[state=open]/tools:rotate-90"
-											/>
-											<h3 class="text-sm font-bold">Custom Tools</h3>
-										</Collapsible.Trigger>
-										<Collapsible.Content class="grid grid-cols-[max-content_auto] gap-2 p-2">
-											<Select.Root
-												type="multiple"
-												value={agent.tools}
-												onValueChange={(value) => {
-													agent.tools = value as any;
-												}}
-											>
-												<Select.Trigger>
-													{#if agent.tools.length == 0}
-														<span class="text-muted-foreground text-sm italic">No extra tools.</span
-														>
-													{:else}
-														{agent.tools.join(', ')}
-													{/if}
-												</Select.Trigger>
-												<Select.Content>
-													{#if Object.keys(tools).length == 0}
-														<span class="text-muted-foreground px-2 text-sm italic">No tools</span>
-													{/if}
-													{#each Object.entries(tools) as [name, tool] (name)}
-														<Select.Item value={name}>{tool.toolSchema.name}</Select.Item>
-													{/each}
-												</Select.Content>
-											</Select.Root>
-										</Collapsible.Content>
-									</Collapsible.Root>
-									<Collapsible.Root class="group/prompt" open={false}>
-										<Collapsible.Trigger
-											class={cn(
-												buttonVariants({ size: 'icon', variant: 'ghost' }),
-												'flex h-6 w-max flex-row items-center gap-1 px-2 pl-1'
-											)}
-										>
-											<ChevronRightIcon
-												class="transition-transform group-data-[state=open]/tools:rotate-90"
-											/>
-											<h3 class="text-sm font-bold">Prompt</h3>
-										</Collapsible.Trigger>
-										<Collapsible.Content class="grid grid-cols-1 gap-2 p-2">
-											<p class="text-muted-foreground text-sm">
-												Inject additional prompt text to the agent's system prompt (the agent must
-												support this!)
-											</p>
-											<Textarea bind:value={agent.systemPrompt} class="" />
-										</Collapsible.Content>
-									</Collapsible.Root>
-								</Collapsible.Content>
-							</Collapsible.Root>
-						{/each}
-					</ul>
-					<Combobox
-						side="right"
-						align="start"
-						options={Object.keys(agents)}
-						searchPlaceholder="Search agents..."
-						onValueChange={(value) => {
-							graph.agents.push(
-								JSON.parse(
-									JSON.stringify({
-										...agents[value],
-										tools: [],
-										name: `agent-${graph.agents.length + 1}`
-									})
-								)
-							);
-						}}
-					>
-						{#snippet trigger({ props })}
-							<Button {...props} size="icon" class="mt-2 w-auto gap-1 px-3"
-								>New agent<PlusIcon /></Button
-							>{/snippet}
-						{#snippet option({ option })}
-							{option}
 						{/snippet}
+					</ClipboardImportDialog>
 					<Separator class="mt-2" />
 					<ModalCollapsible title="Agents">
 						<ul class="flex flex-col gap-1">
@@ -505,6 +334,26 @@
 														{/each}
 													</Select.Content>
 												</Select.Root>
+											</Collapsible.Content>
+										</Collapsible.Root>
+										<Collapsible.Root class="group/prompt" open={false}>
+											<Collapsible.Trigger
+												class={cn(
+													buttonVariants({ size: 'icon', variant: 'ghost' }),
+													'flex h-6 w-max flex-row items-center gap-1 px-2 pl-1'
+												)}
+											>
+												<ChevronRightIcon
+													class="transition-transform group-data-[state=open]/tools:rotate-90"
+												/>
+												<h3 class="text-sm font-bold">Prompt</h3>
+											</Collapsible.Trigger>
+											<Collapsible.Content class="grid grid-cols-1 gap-2 p-2">
+												<p class="text-muted-foreground text-sm">
+													Inject additional prompt text to the agent's system prompt (the agent must
+													support this!)
+												</p>
+												<Textarea bind:value={agent.systemPrompt} class="" />
 											</Collapsible.Content>
 										</Collapsible.Root>
 									</Collapsible.Content>
