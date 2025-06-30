@@ -3,54 +3,48 @@
 
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar';
-	import * as Select from '$lib/components/ui/select';
-	import * as Dialog from '$lib/components/ui/dialog';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 
-	import Logo from '$lib/icons/logo.svelte';
-
 	import { Button } from '$lib/components/ui/button';
-	import { Input } from '$lib/components/ui/input';
-	import { Label } from '$lib/components/ui/label';
-
-	import { sessionCtx, type RegistryAgent } from '$lib/threads';
 
 	import ChevronDown from 'phosphor-icons-svelte/IconCaretDownRegular.svelte';
 	import MoonIcon from 'phosphor-icons-svelte/IconMoonRegular.svelte';
 	import SunIcon from 'phosphor-icons-svelte/IconSunRegular.svelte';
 	import IconArrowsClockwise from 'phosphor-icons-svelte/IconArrowsClockwiseRegular.svelte';
-	import Plus from 'phosphor-icons-svelte/IconPlusRegular.svelte';
 	import IconChats from 'phosphor-icons-svelte/IconChatsRegular.svelte';
-	import IconPlugsRegular from 'phosphor-icons-svelte/IconPlugsRegular.svelte';
 	import IconRobot from 'phosphor-icons-svelte/IconRobotRegular.svelte';
 	import IconToolbox from 'phosphor-icons-svelte/IconToolboxRegular.svelte';
 	import IconPackage from 'phosphor-icons-svelte/IconPackageRegular.svelte';
 	import IconNotepad from 'phosphor-icons-svelte/IconNotepadRegular.svelte';
 
-	import Badge from './ui/badge/badge.svelte';
 	import { cn } from '$lib/utils';
-	import CreateSession from './create-session.svelte';
-	import { PersistedState, useDebounce, watch } from 'runed';
+	import { sessionCtx, type RegistryAgent } from '$lib/threads';
 	import { Session } from '$lib/session.svelte';
-	import { onMount } from 'svelte';
+
 	import { socketCtx } from '$lib/socket.svelte';
 	import { toggleMode } from 'mode-watcher';
-	import { page } from '$app/state';
-	import Separator from './ui/separator/separator.svelte';
+
+	import CreateSession from '$lib/components/dialogs/create-session.svelte';
+
 	import ServerSwitcher from './server-switcher.svelte';
 	import NavBundle from './nav-bundle.svelte';
 	import SidebarLink from './sidebar-link.svelte';
+	import Tour from './tour/tour.svelte';
+	import { onMount } from 'svelte';
 
 	let sessCtx = sessionCtx.get();
 	let tools = socketCtx.get();
 	let conn = $derived(sessCtx.session);
 
-	let threadName = $state('');
-	let participants: string[] = $state([]);
-
 	let connecting = $state(false);
 	let error: string | null = $state(null);
+
+	let tourOpen = $state(false);
+
+	onMount(() => {
+		if (sessCtx.connection === null) tourOpen = true;
+	});
 
 	let createSessionOpen = $state(false);
 
@@ -77,20 +71,30 @@
 		}
 	};
 
-	// onMount(() => refreshAgents());
-
-	const debouncedRefresh = useDebounce(() => refreshAgents(), 400);
-	const inputRefresh = () => {
-		connecting = true;
-		debouncedRefresh();
-	};
+	let serverSwitcher = $state(null) as unknown as HTMLButtonElement;
+	let sessionSwitcher = $state(null) as unknown as HTMLButtonElement;
 </script>
 
 <CreateSession bind:open={createSessionOpen} agents={sessCtx.registry ?? {}} />
-
+<Tour
+	open={tourOpen}
+	items={[
+		{
+			target: serverSwitcher,
+			side: 'right',
+			text: 'Welcome to Coral Studio!\n\nFirst, connect to your server here.'
+		},
+		{
+			target: sessionSwitcher,
+			side: 'right',
+			text: 'Then, once connected:\n\nCreate or connect to a session here.'
+		}
+	]}
+/>
 <Sidebar.Root>
 	<Sidebar.Header>
 		<ServerSwitcher
+			bind:ref={serverSwitcher}
 			onSelect={(host) => {
 				sessCtx.connection = {
 					host,
@@ -151,6 +155,7 @@
 					{#snippet child({ props })}
 						<Sidebar.MenuButton
 							{...props}
+							bind:ref={sessionSwitcher}
 							aria-invalid={sessCtx.session === null || !sessCtx.session.connected}
 							class="border-input ring-offset-background aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive m-[0.5px] mb-1 aria-invalid:ring"
 						>
@@ -217,7 +222,7 @@
 								title: 'User Input',
 								url: '/tools/user-input',
 								badge: Object.values(tools.userInput.requests).filter(
-									(req) => req.response === undefined
+									(req) => req.userQuestion === undefined
 								).length
 							}
 						]

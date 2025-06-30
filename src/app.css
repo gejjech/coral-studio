@@ -112,6 +112,10 @@
 		font-optical-sizing: auto;
 	}
 
+	[data-bits-floating-content-wrapper] {
+		@apply transition-transform duration-75 ease-in-out;
+	}
+
 	h1,
 	h2,
 	h3,

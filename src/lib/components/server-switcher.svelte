@@ -13,6 +13,7 @@
 	import Button from './ui/button/button.svelte';
 	import { fade } from 'svelte/transition';
 	import { onMount, tick, untrack } from 'svelte';
+	import type { WithElementRef } from 'bits-ui';
 
 	let servers = new PersistedState<string[]>('servers', []);
 	let selected = new PersistedState<string | null>('selectedServer', null);
@@ -22,6 +23,9 @@
 		if (!cur) return;
 		if (servers.current.indexOf(cur) === -1) {
 			selected.current = null;
+		}
+		if (selected.current === null && servers.current.length > 0) {
+			selected.current = servers.current[0];
 		}
 	});
 	onMount(() => {
@@ -55,12 +59,21 @@
 		debouncedTest();
 	};
 
+	$effect(() => {
+		value = selected.current;
+	});
+
 	let {
+		value = $bindable(null),
+		ref = $bindable(null),
 		onSelect
-	}: {
-		value?: string;
-		onSelect?: (server: string) => void;
-	} = $props();
+	}: WithElementRef<
+		{
+			value?: string | null;
+			onSelect?: (server: string) => void;
+		},
+		HTMLButtonElement
+	> = $props();
 </script>
 
 <Sidebar.Menu>
@@ -70,6 +83,7 @@
 				{#snippet child({ props })}
 					<Sidebar.MenuButton
 						size="lg"
+						bind:ref
 						class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground "
 						{...props}
 					>
