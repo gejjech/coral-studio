@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import AppSidebar from '$lib/components/app-sidebar.svelte';
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb';
+	import * as Tabs from '$lib/components/ui/tabs';
 	import * as Accordion from '$lib/components/ui/accordion';
 	import { Separator } from '$lib/components/ui/separator';
 	import * as Sidebar from '$lib/components/ui/sidebar';
@@ -9,8 +10,13 @@
 	import { Button } from '$lib/components/ui/button';
 	import CaretRight from 'phosphor-icons-svelte/IconCaretRightRegular.svelte';
 	import ExternalLink from 'phosphor-icons-svelte/IconArrowsOutRegular.svelte';
+	import ScrollArea from '$lib/components/ui/scroll-area/scroll-area.svelte';
+	import { AgentLogs, logContext } from '$lib/logs.svelte';
+	import { cn } from '$lib/utils';
+	import Logs from '$lib/components/logs.svelte';
 
 	let ctx = sessionCtx.get();
+	let logCtx = logContext.get();
 	let conn = $derived(ctx.session);
 
 	let threads = $derived(conn?.threads ?? {});
@@ -22,6 +28,10 @@
 	let memberThreads = $derived(
 		Object.values(threads).filter((thread) => thread.participants.indexOf(agentName) !== -1)
 	);
+
+	let logs = $derived(logCtx.logs[agentName]);
+	const ts_fmt = (d: Date) =>
+		`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
 </script>
 
 <Sidebar.Provider>
@@ -43,39 +53,50 @@
 			</Breadcrumb.Root>
 		</header>
 		{#if agent !== undefined}
-			<main class="p-4">
-				<h1 class="text-3xl font-bold">{agentName}</h1>
-				<!-- <p>{agent.description}</p> -->
-				<Accordion.Root type="single" class="w-full sm:max-w-[70%]" value="threads">
-					<Accordion.Item value="threads">
-						<Accordion.Trigger>Threads</Accordion.Trigger>
-						<Accordion.Content class="flex flex-col gap-4 text-balance">
-							<ul class="pl-4">
-								{#if memberThreads.length === 0}
-									<li class="text-muted-foreground text-sm">Not a member of any threads.</li>
-								{/if}
-								{#each memberThreads as thread (thread.id)}
-									<li class="flex items-center">
-										<CaretRight class="size-4" />
-										<Button variant="link" href={`/thread/${thread.id}`} class="font-bold">
-											{thread.name}<ExternalLink class="size-3" />
-										</Button>
-										<span>
-											with:
-											{#each thread.participants as part}
-												{#if part !== agentName}
-													<Button variant="link" href={`/agent/${part}`} class="m-0 px-2"
-														>{part}</Button
-													>
-												{/if}
-											{/each}
-										</span>
-									</li>
-								{/each}
-							</ul>
-						</Accordion.Content>
-					</Accordion.Item>
-				</Accordion.Root>
+			<main class="h-full p-4">
+				<Tabs.Root value="main" class="h-full">
+					<Tabs.List>
+						<Tabs.Trigger value="main">Overview</Tabs.Trigger>
+						<Tabs.Trigger value="logs">Logs</Tabs.Trigger>
+					</Tabs.List>
+					<Tabs.Content value="main">
+						<h1 class="text-3xl font-bold">{agentName}</h1>
+						<!-- <p>{agent.description}</p> -->
+						<Accordion.Root type="single" class="w-full sm:max-w-[70%]" value="threads">
+							<Accordion.Item value="threads">
+								<Accordion.Trigger>Threads</Accordion.Trigger>
+								<Accordion.Content class="flex flex-col gap-4 text-balance">
+									<ul class="pl-4">
+										{#if memberThreads.length === 0}
+											<li class="text-muted-foreground text-sm">Not a member of any threads.</li>
+										{/if}
+										{#each memberThreads as thread (thread.id)}
+											<li class="flex items-center">
+												<CaretRight class="size-4" />
+												<Button variant="link" href={`/thread/${thread.id}`} class="font-bold">
+													{thread.name}<ExternalLink class="size-3" />
+												</Button>
+												<span>
+													with:
+													{#each thread.participants as part}
+														{#if part !== agentName}
+															<Button variant="link" href={`/agent/${part}`} class="m-0 px-2"
+																>{part}</Button
+															>
+														{/if}
+													{/each}
+												</span>
+											</li>
+										{/each}
+									</ul>
+								</Accordion.Content>
+							</Accordion.Item>
+						</Accordion.Root>
+					</Tabs.Content>
+					<Tabs.Content value="logs" class="h-full min-h-0 basis-0">
+						<Logs logs={logs?.logs ?? []} class="h-full max-h-full" />
+					</Tabs.Content>
+				</Tabs.Root>
 			</main>
 		{:else}
 			<p class="text-muted-foreground mt-4 text-center text-sm">Agent not found.</p>
