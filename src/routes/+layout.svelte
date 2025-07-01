@@ -5,6 +5,7 @@
 	import { ModeWatcher } from 'mode-watcher';
 	import '../app.css';
 	import { AgentLogs, logContext } from '$lib/logs.svelte';
+	import { watch } from 'runed';
 
 	let { children } = $props();
 
@@ -17,12 +18,18 @@
 	sessionCtx.set(session);
 
 	let logCtx: ReturnType<(typeof logContext)['get']> = $state({
+		session: null,
 		logs: {}
 	});
 	logContext.set(logCtx);
 
-	$effect(() => {
+	watch([() => session.session, () => session.connection], () => {
 		if (!session.session || !session.connection) return;
+		if (logCtx.session !== null && logCtx.session !== session.session.session) {
+			logCtx.logs = {};
+			console.log('invalidating session logs');
+		}
+		logCtx.session = session.session.session;
 		for (const agent of Object.keys(session.session.agents)) {
 			if (!(agent in logCtx.logs)) {
 				logCtx.logs[agent] = new AgentLogs(

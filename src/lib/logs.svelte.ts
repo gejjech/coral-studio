@@ -53,4 +53,7 @@ export class AgentLogs {
 	}
 }
 
-export const logContext = new Context<{ logs: { [agentId: string]: AgentLogs } }>('agentLogs');
+export const logContext = new Context<{
+	logs: { [agentId: string]: AgentLogs };
+	session: string | null;
+}>('agentLogs');
