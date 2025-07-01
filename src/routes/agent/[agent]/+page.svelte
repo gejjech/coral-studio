@@ -13,6 +13,7 @@
 	import ScrollArea from '$lib/components/ui/scroll-area/scroll-area.svelte';
 	import { AgentLogs, logContext } from '$lib/logs.svelte';
 	import { cn } from '$lib/utils';
+	import Logs from '$lib/components/logs.svelte';
 
 	let ctx = sessionCtx.get();
 	let logCtx = logContext.get();
@@ -93,25 +94,7 @@
 						</Accordion.Root>
 					</Tabs.Content>
 					<Tabs.Content value="logs" class="h-full min-h-0 basis-0">
-						<ScrollArea class="h-full max-h-full">
-							{#if logs}
-								<ul class="grid grid-cols-[max-content_minmax(0,1fr)] gap-x-2 text-sm">
-									{#each logs.logs as log}
-										{@const timestamp = log.timestamp ? new Date(log.timestamp) : null}
-										<li
-											class={cn(
-												'col-span-full grid grid-cols-subgrid whitespace-pre-wrap',
-												log.kind === 'STDERR' ? 'text-destructive' : ''
-											)}
-										>
-											<span class="opacity-40">{timestamp ? ts_fmt(timestamp) : ''}</span><span
-												>{log.message}</span
-											>
-										</li>
-									{/each}
-								</ul>
-							{/if}
-						</ScrollArea>
+						<Logs logs={logs?.logs ?? []} class="h-full max-h-full" />
 					</Tabs.Content>
 				</Tabs.Root>
 			</main>
