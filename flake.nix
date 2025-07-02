@@ -26,7 +26,10 @@
       pkgs,
       system,
     }: let
-      packageJson = nixpkgs.lib.importJSON ./package.json;
+      lib = nixpkgs.lib;
+      packageJson = lib.importJSON ./package.json;
+      cleanName = lib.last (lib.split "/" packageJson.name);
+
       app-src = pkgs.mkYarnPackage {
         inherit (packageJson) name version;
         src = ./.;
@@ -41,19 +44,19 @@
     in rec {
       inherit app-src;
       default = pkgs.writeShellApplication {
-        inherit (packageJson) name;
+        name = cleanName;
         runtimeInputs = [app-src pkgs.nodejs];
         text = ''
-          ${pkgs.nodejs}/bin/node ${app-src}/libexec/${packageJson.name}/deps/${packageJson.name}/build
+          ${pkgs.nodejs}/bin/node ${app-src}/libexec/${packageJson.name}/deps/${packageJson.name}/build/server.js
         '';
       };
       docker = pkgs.dockerTools.buildLayeredImage {
-        inherit (packageJson) name;
+        name = cleanName;
         tag = packageJson.version;
         contents = [pkgs.nodejs default];
         config = {
           Entrypoint = ["${pkgs.dumb-init}/bin/dumb-init" "--"];
-          Cmd = ["${default}/bin/${packageJson.name}"];
+          Cmd = ["${default}/bin/${cleanName}"];
           ExposedPorts = {"3000/tcp" = {};};
         };
       };

@@ -1,15 +1,18 @@
 import http from 'http';
 import express from 'express';
-import { handler } from '../build/handler.js';
-import { injectSocketIO } from './socketio.js';
+import { handler } from './handler.js';
+import injectSocketIO from './socketio.js';
+
+import { Server } from 'socket.io';
 
 const app = express();
 const server = http.createServer(app);
 
 globalThis.socketSecret = crypto.randomUUID();
 
+const io = new Server(server, { path: '/socket.io' });
 // Inject SocketIO
-injectSocketIO(server);
+injectSocketIO(io);
 
 // SvelteKit handlers
 app.use(handler);
