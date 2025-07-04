@@ -1,31 +1,48 @@
 # coral-studio
+Create, manage & inspect agent sessions through [Coral Server](https://github.com/Coral-Protocol/coral-server/).
 
-[//]: # (TODO: Fix npx)
-[//]: # (# Running via npx &#40;recommended&#41;)
+![thread view](./docs/static/thread-view.webp)
 
-[//]: # (```bash)
+# Getting Started
+<!-- ### Running via npx -->
+<!---->
+<!-- ```bash -->
+<!-- npx @coral-protocol/coral-studio -->
+<!-- ``` -->
+<!-- Coral studio will be available at [`http://localhost:3000/`](http://localhost:3000/) -->
 
-[//]: # (npx @coral-protcol/coral-studio)
-
-[//]: # (```)
-## Running
-1. After cloning the repo, cd into it.
-2. Install dependencies with yarn, then start a dev server:
-```bash
-yarn install
-yarn dev
-```
-
-You can then access coral studio at http://127.0.0.1:3000
-## Building
-
-```bash
-yarn build
-```
-
-You can preview the production build with `yarn preview`.
-
-## Running on Docker (not recommended)
+### Running via Docker
 ```bash
 docker run -p 3000:3000 ghcr.io/coral-protocol/coral-studio
 ```
+Coral studio will be available at [`http://localhost:3000/`](http://localhost:3000/)
+
+### Run from source
+Install dependencies with:
+```bash
+yarn install
+```
+
+Then build and serve with:
+
+
+```bash
+yarn build
+yarn preview
+```
+
+Coral studio will be available at [`http://localhost:4173/`](http://localhost:4173/)
+
+# Screenshots
+
+![Session Creation Dialog](./docs/static/create-session.webp)
+![User Input Tool](./docs/static/user-input.webp)
+
+# Developing
+Start a development server with
+```bash
+yarn dev
+```
+Coral studio will be available at [`http://localhost:5173/`](http://localhost:5173/)
+
+
