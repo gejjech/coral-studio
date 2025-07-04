@@ -22,6 +22,4 @@ export default function injectSocketIO(io: SocketServer) {
 			ns.emit(event, ...args);
 		});
 	});
-
-	console.log('SocketIO injected @ ', io.httpServer.address());
 }
