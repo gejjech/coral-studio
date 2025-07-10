@@ -452,7 +452,7 @@
 								// todo @alan there should probably be an api class where we can generic-ify the handling of this error
 								// with a proper type implementation too..!
 								let error: { message: string, stackTrace: string[] } = await res.json();
-								console.log(error.stackTrace);
+								console.error(error.stackTrace);
 
 								toast.error(`Failed to create session: ${error.message}`);
 								return;
