@@ -433,7 +433,7 @@
 					onclick={async () => {
 						if (!ctx.connection) return;
 						try {
-							const res: { sessionId: string } = await fetch(
+							const res = await fetch(
 								`http://${ctx.connection.host}/sessions`,
 								{
 									method: 'POST',
@@ -446,15 +446,29 @@
 										privacyKey: ctx.connection.privacyKey
 									})
 								}
-							).then((res) => res.json());
+							);
+
+							if (res.status != 200) {
+								// todo @alan there should probably be an api class where we can generic-ify the handling of this error
+								// with a proper type implementation too..!
+								let error: { message: string, stackTrace: string[] } = await res.json();
+								console.log(error.stackTrace);
+
+								toast.error(`Failed to create session: ${error.message}`);
+								return;
+							}
+							
+							let session: { sessionId: string } = await res.json();
+
 							if (!ctx.sessions) ctx.sessions = [];
-							ctx.sessions.push(res.sessionId);
+							ctx.sessions.push(session.sessionId);
 							ctx.session = new Session({
 								...ctx.connection,
-								session: res.sessionId
+								session: session.sessionId
 							});
 							open = false;
 						} catch (e) {
+							console.log(e);
 							toast.error(`Failed to create session: ${e}`);
 						}
 					}}
