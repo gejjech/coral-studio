@@ -112,9 +112,11 @@
 		font-optical-sizing: auto;
 	}
 
-	[data-bits-floating-content-wrapper] {
-		@apply transition-transform duration-75 ease-in-out;
-	}
+	// TODO: figure out how to apply this only to the tour dialog.
+  //       this causes really bad ux for things like dropdowns as is
+	/* [data-bits-floating-content-wrapper] { */
+	/* 	@apply transition-transform duration-75 ease-in-out; */
+	/* } */
 
 	h1,
 	h2,
