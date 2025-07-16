@@ -22,7 +22,7 @@
 			<Dialog.Title>Import from clipboard</Dialog.Title>
 			<Dialog.Description></Dialog.Description>
 		</Dialog.Header>
-		<Textarea autocomplete="off" class="max-h-[80svh] min-h-60" />
+		<Textarea bind:value autocomplete="off" class="max-h-[80svh] min-h-60" />
 		<Button
 			onclick={() => {
 				onImport?.(value);
