@@ -4,6 +4,7 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 
 	import type { Snippet } from 'svelte';
+	import ScrollArea from '$lib/components/ui/scroll-area/scroll-area.svelte';
 
 	let {
 		onImport,
@@ -22,8 +23,7 @@
 			<Dialog.Title>Import from clipboard</Dialog.Title>
 			<Dialog.Description></Dialog.Description>
 		</Dialog.Header>
-
-		<Textarea bind:value class="min-h-60" />
+		<Textarea bind:value class="max-h-[80svh] min-h-60" />
 		<Button
 			onclick={() => {
 				onImport?.(value);
