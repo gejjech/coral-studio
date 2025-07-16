@@ -36,7 +36,7 @@
 	{/if}
 	{#if collapsible}
 		<IconCaretRight
-			class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+			class="ml-auto transition-transform duration-200 group-aria-expanded/collapsible:rotate-90"
 		/>
 	{/if}
 {/snippet}
