@@ -8,6 +8,7 @@
 	import SidebarMenuBadge from '$lib/components/ui/sidebar/sidebar-menu-badge.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import SidebarLink from './sidebar-link.svelte';
+	import { cn } from '$lib/utils';
 
 	let {
 		items
@@ -21,9 +22,18 @@
 				title: string;
 				url: string;
 				badge?: number;
+				state?: keyof typeof stateColors;
 			}[];
 		}[];
 	} = $props();
+
+	const stateColors = {
+		disconnected: 'border-primary/30 border bg-transparent',
+		connecting: 'bg-primary/30 animate-pulse',
+		listening: 'bg-green-400',
+		busy: 'bg-orange-400 animate-pulse',
+		dead: 'bg-destructive'
+	};
 </script>
 
 <Sidebar.Menu>
@@ -58,6 +68,11 @@
 												<Tooltip.Trigger {...props}>
 													{#snippet child({ props })}
 														<a href={subItem.url} {...props}>
+															{#if subItem.state}
+																<span class={cn('size-2 rounded-full', stateColors[subItem.state])}
+																	><span class="sr-only">({subItem.state})</span></span
+																>
+															{/if}
 															<span class="truncate font-sans font-medium tracking-wide"
 																>{subItem.title}</span
 															>

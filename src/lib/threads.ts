@@ -37,6 +37,7 @@ export type Agent = {
 	options: { [name: string]: string | number | undefined };
 	systemPrompt?: string;
 	tools?: string[];
+	state: string; // TODO: type me
 };
 
 export type ToolTransport = {

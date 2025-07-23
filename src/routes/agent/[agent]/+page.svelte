@@ -61,6 +61,7 @@
 					</Tabs.List>
 					<Tabs.Content value="main">
 						<h1 class="text-3xl font-bold">{agentName}</h1>
+						<p>{agent.state}</p>
 						<!-- <p>{agent.description}</p> -->
 						<Accordion.Root type="single" class="w-full sm:max-w-[70%]" value="threads">
 							<Accordion.Item value="threads">

@@ -79,8 +79,8 @@ export class Session {
 						this.agents[agent.id] = agent;
 					}
 					break;
-				case 'org.coralprotocol.coralserver.session.Event.AgentRegistered':
-					this.agents[data.agent.id] = data.agent;
+				case 'org.coralprotocol.coralserver.session.Event.AgentStateUpdated':
+					this.agents[data.agentId].state = data.state;
 					break;
 				case 'org.coralprotocol.coralserver.session.Event.ThreadCreated':
 					console.log('new thread');

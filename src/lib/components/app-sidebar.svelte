@@ -210,7 +210,11 @@
 						title: 'Agents',
 						icon: IconRobot,
 						items: conn
-							? Object.keys(conn.agents).map((item) => ({ title: item, url: `/agent/${item}` }))
+							? Object.entries(conn.agents).map(([title, agent]) => ({
+									title,
+									url: `/agent/${title}`,
+									state: agent.state ?? 'disconnected'
+								}))
 							: []
 					},
 					{
