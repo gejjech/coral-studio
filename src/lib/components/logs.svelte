@@ -31,7 +31,7 @@
 	<!-- 	{#snippet renderItem(log)} -->
 	<!-- 	{/snippet} -->
 	<!-- </SvelteVirtualList> -->
-	<ul class="min-h-0 text-sm">
+	<ul class="min-h-0 text-sm whitespace-pre-wrap">
 		{#each logs as log}
 			{@const timestamp = log.timestamp ? new Date(log.timestamp) : null}
 			<li
