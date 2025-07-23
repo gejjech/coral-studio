@@ -46,7 +46,7 @@
 			{`${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`}
 		</p>
 	</Card.Header>
-	<Card.Content class="px-4">
+	<Card.Content class="px-4 whitespace-pre-wrap">
 		{message.content}
 	</Card.Content>
 </Card.Root>
