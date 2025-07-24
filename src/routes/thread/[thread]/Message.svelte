@@ -4,12 +4,16 @@
 	import type { Message } from '$lib/threads';
 	import { cn } from '$lib/utils';
 	import { ArrowRight, ArrowRightIcon } from '@lucide/svelte';
+	import AgentName from './AgentName.svelte';
+	import type { SvelteSet } from 'svelte/reactivity';
 
 	let {
 		message,
+		agentFilters,
 		class: className
 	}: {
 		message: Message;
+		agentFilters?: SvelteSet<string>;
 		class?: string;
 	} = $props();
 
@@ -20,24 +24,19 @@
 
 <Card.Root class={cn('gap-2 py-4', className)}>
 	<Card.Header class="flex flex-row gap-1 px-4 text-sm leading-5">
-		<span
-			class={cn('text-primary-foreground rounded-md px-1.5 py-0', pickTextColor(senderColor))}
-			style={`background-color: ${senderColor}`}
-		>
-			{message.senderId}
-		</span>
+		<AgentName
+			color={senderColor}
+			name={message.senderId}
+			disabled={agentFilters && !agentFilters.has(message.senderId)}
+		/>
 		<span class="w-max">-></span>
 		{#each mentions as mention}
 			{@const mentionColor = stringToColor(mention)}
-			<span
-				class={cn(
-					'bg-primary text-primary-foreground rounded-md px-1 py-0',
-					pickTextColor(mentionColor)
-				)}
-				style={`background-color: ${mentionColor}`}
-			>
-				{mention}
-			</span>
+			<AgentName
+				color={mentionColor}
+				name={mention}
+				disabled={agentFilters && !agentFilters.has(mention)}
+			/>
 		{/each}
 		{#if mentions.length == 0}
 			<span class="text-muted-foreground">nobody</span>
