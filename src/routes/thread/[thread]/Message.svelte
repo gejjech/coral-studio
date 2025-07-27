@@ -3,9 +3,12 @@
 	import * as Card from '$lib/components/ui/card';
 	import type { Message } from '$lib/threads';
 	import { cn } from '$lib/utils';
-	import { ArrowRight, ArrowRightIcon } from '@lucide/svelte';
+	import { ArrowRight, ArrowRightIcon, LogsIcon } from '@lucide/svelte';
 	import AgentName from './AgentName.svelte';
 	import type { SvelteSet } from 'svelte/reactivity';
+	import Button from '$lib/components/ui/button/button.svelte';
+  import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
+	import { toast } from 'svelte-sonner';
 
 	let {
 		message,
@@ -20,6 +23,11 @@
 	let senderColor = $derived(stringToColor(message.senderId));
 	let date = $derived(new Date(message.timestamp));
 	let mentions = $derived(message.mentions ?? []);
+
+  function copyTelemetry() {
+    navigator.clipboard.writeText(`${message.threadId}/${message.id}.json`);
+    toast.success('Telemetry path to clipboard');
+  }
 </script>
 
 <Card.Root class={cn('gap-2 py-4', className)}>
@@ -42,8 +50,24 @@
 			<span class="text-muted-foreground">nobody</span>
 		{/if}
 		<p class="flex-grow text-right" title={message.timestamp?.toString() ?? 'null'}>
-			{`${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`}
+			{`${date.toLocaleTimeString()}`}
 		</p>
+
+    <!-- Should probably structure the parents better instead of using negative margins here -->
+    <div style="margin-right: -6px; margin-top: -6px; padding-left: 4px;">
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger>
+          <Button variant="ghost" size="sm">
+            <LogsIcon />
+          </Button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content>
+          <DropdownMenu.Group>
+            <DropdownMenu.Item onclick={copyTelemetry}>Copy telemetry path</DropdownMenu.Item>
+          </DropdownMenu.Group>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
+    </div>
 	</Card.Header>
 	<Card.Content class="px-4 whitespace-pre-wrap">
 		{message.content}
