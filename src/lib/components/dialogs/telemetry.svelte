@@ -32,15 +32,23 @@
 							<Tabs.Trigger value="hyperparameters">Hyperparameters</Tabs.Trigger>
 							<Tabs.Trigger value="details">Details</Tabs.Trigger>
 						</Tabs.List>
-						<Tabs.Content value="hyperparameters" class="p-2">Hyperparameters!</Tabs.Content>
+						<Tabs.Content value="hyperparameters" class="p-2">empty</Tabs.Content>
 						<Tabs.Content value="details" class="p-2">
 							<ol>
-								<li>Additional parameters: {messageData.data.additional_params}</li>
+								<li class="flex flex-col">
+									Additional parameters: <span class="bg-white/5"
+										>{JSON.stringify(messageData.data.additional_params)}</span
+									>
+								</li>
 								<li>Max tokens: {messageData.data.max_tokens}</li>
 								<li>Model description: {messageData.data.model_description}</li>
 								<li>Preamble: {messageData.data.preamble}</li>
-								<li>Resources: {messageData.data.resources}</li>
-								<li>Temprature: {messageData.data.temperature}</li>
+								<li class="flex flex-col">
+									Resources: <span class="bg-white/5"
+										>{JSON.stringify(messageData.data.resources)}</span
+									>
+								</li>
+								<li>Temperature: {messageData.data.temperature}</li>
 							</ol>
 						</Tabs.Content>
 					</Tabs.Root>

@@ -83,7 +83,7 @@
 				"text": "lots of text here usually"
 			}
 		],
-		"`temperature`": 0.97
+		"temperature": 0.97
 	},
 	"targets": [
 		{
