@@ -7,8 +7,9 @@
 	import AgentName from './AgentName.svelte';
 	import type { SvelteSet } from 'svelte/reactivity';
 	import Button from '$lib/components/ui/button/button.svelte';
-  import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import { toast } from 'svelte-sonner';
+	import Telemetry from '$lib/components/dialogs/telemetry.svelte';
 
 	let {
 		message,
@@ -23,13 +24,19 @@
 	let senderColor = $derived(stringToColor(message.senderId));
 	let date = $derived(new Date(message.timestamp));
 	let mentions = $derived(message.mentions ?? []);
+	let telemetryDialogOpen = $state(false);
 
-  function copyTelemetry() {
-    navigator.clipboard.writeText(`${message.threadId}/${message.id}.json`);
-    toast.success('Telemetry path to clipboard');
-  }
+	function openTelemetry() {
+		telemetryDialogOpen = true;
+	}
+
+	function copyTelemetry() {
+		navigator.clipboard.writeText(`${message.threadId}/${message.id}.json`);
+		toast.success('Copied telemetry path to clipboard');
+	}
 </script>
 
+<Telemetry bind:open={telemetryDialogOpen} />
 <Card.Root class={cn('gap-2 py-4', className)}>
 	<Card.Header class="flex flex-row gap-1 px-4 text-sm leading-5">
 		<AgentName
@@ -53,21 +60,25 @@
 			{`${date.toLocaleTimeString()}`}
 		</p>
 
-    <!-- Should probably structure the parents better instead of using negative margins here -->
-    <div style="margin-right: -6px; margin-top: -6px; padding-left: 4px;">
-      <DropdownMenu.Root>
-        <DropdownMenu.Trigger>
-          <Button variant="ghost" size="sm">
-            <LogsIcon />
-          </Button>
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content>
-          <DropdownMenu.Group>
-            <DropdownMenu.Item onclick={copyTelemetry}>Copy telemetry path</DropdownMenu.Item>
-          </DropdownMenu.Group>
-        </DropdownMenu.Content>
-      </DropdownMenu.Root>
-    </div>
+		<!-- Should probably structure the parents better instead of using negative margins here -->
+		<div style="margin-right: -6px; margin-top: -6px; padding-left: 4px;">
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger>
+					<Button variant="ghost" size="sm">
+						<LogsIcon />
+					</Button>
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content>
+					<DropdownMenu.Group>
+						<DropdownMenu.Item
+							onclick={() => {
+								telemetryDialogOpen = true;
+							}}>View Telemetry</DropdownMenu.Item
+						>
+					</DropdownMenu.Group>
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
+		</div>
 	</Card.Header>
 	<Card.Content class="px-4 whitespace-pre-wrap">
 		{message.content}
