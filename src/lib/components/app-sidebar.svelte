@@ -19,9 +19,7 @@
 	import IconNotepad from 'phosphor-icons-svelte/IconNotepadRegular.svelte';
 
 	import { cn } from '$lib/utils';
-	import { sessionCtx, type RegistryAgent } from '$lib/threads';
-	import { Session } from '$lib/session.svelte';
-
+	import { sessionCtx } from '$lib/threads';
 	import { socketCtx } from '$lib/socket.svelte';
 	import { toggleMode } from 'mode-watcher';
 
@@ -32,6 +30,10 @@
 	import SidebarLink from './sidebar-link.svelte';
 	import Tour from './tour/tour.svelte';
 	import { onMount } from 'svelte';
+
+  import createClient from "openapi-fetch"
+	import type { paths, components } from '../../generated/api';
+	import { Session } from '$lib/session.svelte';
 
 	let sessCtx = sessionCtx.get();
 	let tools = socketCtx.get();
@@ -51,18 +53,17 @@
 	const refreshAgents = async () => {
 		if (!sessCtx.connection) return;
 		try {
+      const client = createClient<paths>({baseUrl: `${location.protocol}//${sessCtx.connection.host}`})
+
 			connecting = true;
 			error = null;
 			sessCtx.registry = null;
-			const agents = (await fetch(`http://${sessCtx.connection.host}/api/v1/registry`).then((res) =>
-				res.json()
-			)) as RegistryAgent[];
-			sessCtx.registry = Object.fromEntries(agents.map((agent) => [agent.id, agent]));
+      
+			const agents = (await client.GET("/api/v1/agents")).data!;
 
-			const sessions = (await fetch(`http://${sessCtx.connection.host}/api/v1/sessions`).then(
-				(res) => res.json()
-			)) as string[];
-			sessCtx.sessions = sessions;
+			sessCtx.registry = Object.fromEntries(agents.map((agent) => [agent.id, agent]));
+			sessCtx.sessions = (await client.GET("/api/v1/sessions")).data!;
+
 			connecting = false;
 		} catch (e) {
 			connecting = false;

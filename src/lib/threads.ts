@@ -1,5 +1,7 @@
 import { Context } from 'runed';
 import type { Session } from './session.svelte';
+import type { components } from '../generated/api';
+
 export type Message = {
 	id: string;
 	threadId: string;
@@ -24,21 +26,16 @@ export type AgentOption = {
 	value: string | undefined;
 } & ({ type: 'string'; default: string | null } | { type: 'number'; default: number | null });
 
-export type RegistryAgent = {
-	id: string;
-	blocking?: boolean;
-	options: { [name: string]: AgentOption };
-};
+export type PublicRegistryAgent = components["schemas"]["PublicRegistryAgent"];
+export type PublicRegistryAgentWithOptions = PublicRegistryAgent & {
+	options: { [name: string]: 
+		(PublicRegistryAgent["options"][string] & {
+			value: string | undefined
+		}) 
+	};
+}
 
-export type Agent = {
-	type: 'local';
-	agentType: string;
-	blocking?: boolean;
-	options: { [name: string]: string | number | undefined };
-	systemPrompt?: string;
-	tools?: string[];
-	state: string; // TODO: type me
-};
+export type GraphAgentRequest = components["schemas"]["GraphAgentRequest"];
 
 export type ToolTransport = {
 	type: 'http';
@@ -60,7 +57,7 @@ export type CustomTool = {
 
 export const sessionCtx = new Context<{
 	session: Session | null;
-	registry: { [id: string]: RegistryAgent } | null;
+	registry: { [id: string]: PublicRegistryAgent } | null;
 	sessions: string[] | null;
 	connection: { host: string; appId: string; privacyKey: string } | null;
 }>('sessionCtx');

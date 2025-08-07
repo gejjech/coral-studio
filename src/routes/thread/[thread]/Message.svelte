@@ -10,13 +10,16 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import { toast } from 'svelte-sonner';
 	import Telemetry from '$lib/components/dialogs/telemetry.svelte';
+	import type { Session } from '$lib/session.svelte';
 
 	let {
 		message,
 		agentFilters,
-		class: className
+		class: className,
+    session
 	}: {
 		message: Message;
+    session?: Session | null;
 		agentFilters?: SvelteSet<string>;
 		class?: string;
 	} = $props();
@@ -25,18 +28,12 @@
 	let date = $derived(new Date(message.timestamp));
 	let mentions = $derived(message.mentions ?? []);
 	let telemetryDialogOpen = $state(false);
-
-	function openTelemetry() {
-		telemetryDialogOpen = true;
-	}
-
-	function copyTelemetry() {
-		navigator.clipboard.writeText(`${message.threadId}/${message.id}.json`);
-		toast.success('Copied telemetry path to clipboard');
-	}
 </script>
 
-<Telemetry bind:open={telemetryDialogOpen} />
+{#if session}
+  <Telemetry bind:open={telemetryDialogOpen} {session} messageId={message.id} threadId={message.threadId} />
+{/if}
+
 <Card.Root class={cn('gap-2 py-4', className)}>
 	<Card.Header class="flex flex-row gap-1 px-4 text-sm leading-5">
 		<AgentName

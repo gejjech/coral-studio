@@ -15,7 +15,7 @@
 	import { ClipboardCopy, PlusIcon, TrashIcon } from '@lucide/svelte';
 
 	import { cn } from '$lib/utils';
-	import { sessionCtx, type Agent, type CustomTool, type RegistryAgent } from '$lib/threads';
+	import { sessionCtx, type CustomTool, type GraphAgentRequest, type PublicRegistryAgent, type PublicRegistryAgentWithOptions } from '$lib/threads';
 	import { Session } from '$lib/session.svelte';
 	import { tools } from '$lib/mcptools';
 
@@ -37,11 +37,12 @@
 	let {
 		open = $bindable(false),
 		agents
-	}: { open: boolean; agents: { [id: string]: RegistryAgent } } = $props();
+	}: { open: boolean; agents: { [id: string]: PublicRegistryAgentWithOptions } } = $props();
 
 	let graph: {
-		agents: (RegistryAgent & {
+		agents: (PublicRegistryAgentWithOptions & {
 			name: string;
+      blocking?: boolean,
 			tools: (keyof typeof tools)[];
 			systemPrompt?: string;
 		})[];
@@ -51,7 +52,7 @@
 
 	let finalBody: {
 		agentGraph: {
-			agents: { [name: string]: Agent };
+			agents: { [name: string]: GraphAgentRequest };
 			links: string[][];
 			tools: { [name: string]: CustomTool };
 		};
@@ -132,7 +133,7 @@
 	);
 
 	const importFromJson = (text: string) => {
-		const data: { agentGraph: { agents: { [name: string]: Agent }; links?: string[][] } } =
+		const data: { agentGraph: { agents: { [name: string]: GraphAgentRequest }; links?: string[][] } } =
 			JSON.parse(text);
 		if (
 			!('agentGraph' in data) ||
@@ -149,21 +150,26 @@
 		finalBody.agentGraph.links = data.agentGraph.links ?? [];
 		const importAgents = data.agentGraph.agents;
 		for (const [name, agent] of Object.entries(importAgents)) {
-			const newAgent: RegistryAgent & {
+      if (!("agentType" in agent)) {
+        continue;
+      }
+
+			const newAgent: PublicRegistryAgentWithOptions & {
 				name: string;
 				tools: (keyof typeof tools)[];
 				systemPrompt?: string;
+        blocking?: boolean
 			} = {
 				name,
 				id: agent.agentType,
 				blocking: agent.blocking,
 				// TODO (alan): handle when this lookup fails
-				options: agents[agent.agentType].options,
+				options: agents[agent.agentType]!.options,
 				systemPrompt: agent.systemPrompt,
 				tools: (agent.tools ?? []) as any
 			};
 			for (const [oName, opt] of Object.entries(agent.options)) {
-				newAgent.options[oName].value = opt as any;
+				newAgent.options[oName]!.value = opt as any;
 			}
 			graph.agents.push(newAgent);
 		}
