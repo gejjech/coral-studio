@@ -42,7 +42,13 @@
 					</Breadcrumb.Item>
 					<Breadcrumb.Separator class="hidden md:block" />
 					<Breadcrumb.Item>
-						<Breadcrumb.Page>{thread?.name ?? ''} {thread?.id ?? ''}</Breadcrumb.Page>
+						<Breadcrumb.Page class="flex items-baseline gap-1"
+							>{thread?.name ?? ''}<span class="text-xs opacity-50"
+								><span class="select-none">&#91; </span>{thread?.id ?? ''}<span class="select-none">
+									&#93;</span
+								></span
+							></Breadcrumb.Page
+						>
 					</Breadcrumb.Item>
 				</Breadcrumb.List>
 			</Breadcrumb.Root>

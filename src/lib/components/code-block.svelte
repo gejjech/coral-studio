@@ -36,7 +36,7 @@
 
 <section class="group bg-secondary relative overflow-clip rounded-md p-1 pt-0 dark:bg-black/30">
 	<ScrollArea orientation="horizontal" class="group relative size-full ">
-		<code class={cn('relative inline-block w-full px-2 py-3 whitespace-pre', language, className)}>
+		<code class={cn(className, language, 'relative inline-block w-full px-2 py-3 ')}>
 			{#if language}
 				{@html colorize[language](text)}
 			{:else}
