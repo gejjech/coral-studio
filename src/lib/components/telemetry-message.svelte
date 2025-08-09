@@ -64,21 +64,28 @@
 		{/if}
 	</div>
 
-	<section class="text-muted-foreground flex flex-col">
+	<section class="text-muted-foreground flex w-full flex-col gap-2">
 		{#if message.content && message.content.length > 0}
 			<span class="text-foreground font-bold">{roleData.label}</span>
 
 			{#each message.content as part}
-				<CodeBlock text={part.text} class="max-w-full whitespace-break-spaces" language="json" />
+				{#if message.role != 'user'}
+					<CodeBlock
+						text={part.text}
+						class=" max-w-full  whitespace-break-spaces "
+						language="json"
+					/>
+				{:else}
+					<p class="whitespace-pre-wrap">{part.text}</p>
+				{/if}
 			{/each}
 		{:else if message.tool_calls}
 			<span class="text-foreground font-bold">Agent invoked tools</span>
-
 			<ul>
 				{#each message.tool_calls as toolCall}
 					<li>
 						<span class="font-bold">{toolCall.function.name} </span>
-						<CodeBlock text={toolCall.function.arguments} class="max-w-full" language="json" />
+						<CodeBlock text={toolCall.function.arguments} class="max-w-max" language="json" />
 					</li>
 				{/each}
 			</ul>
