@@ -15,8 +15,10 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import Separator from '../ui/separator/separator.svelte';
 	import Telemetry from '$lib/components/telemetry-message.svelte';
-	import { MessagesSquare } from '@lucide/svelte';
+	import { Code, MessagesSquare } from '@lucide/svelte';
 	import { ScrollArea } from '../ui/scroll-area';
+	import * as Card from '../ui/card';
+	import * as Accordion from '../ui/accordion';
 
 	const filter = $state({
 		user: true,
@@ -74,7 +76,7 @@
 						<Dialog.Title class="h-fit  font-[400]">Full Telemetry Data</Dialog.Title>
 						<span class="text-muted-foreground text-sm">{data.model_description} - {threadId}</span>
 						<Tabs.List class="h-11 border  p-0.5">
-							<Tabs.Trigger value="messages"><Chat /> Message Insights</Tabs.Trigger>
+							<Tabs.Trigger value="messages"><Chat /> Message Events</Tabs.Trigger>
 							<Tabs.Trigger value="details"><TextIndent /> Thread Details</Tabs.Trigger>
 							<Tabs.Trigger value="hyperparameters"><GlobeSimple /> Hyperparameters</Tabs.Trigger>
 						</Tabs.List>
@@ -139,52 +141,129 @@
 						</section>
 					</Dialog.Header>
 					<ScrollArea class="min-h-0 flex-1 rounded-md pb-0">
-						<Tabs.Content value="messages" class="h-full  pb-4">
-							<ul class="flex flex-col [&_.separator:last-of-type]:hidden">
-								<!-- this can all be done better later, just proof of concept for now-->
+						<Tabs.Content value="messages" class="h-full">
+							<ul class="flex flex-col px-4 [&_.separator:last-of-type]:hidden">
 								{#each data.messages.data as message, i}
-									{#if filter.user && message.role === 'user'}
-										<Telemetry {message} />
-									{/if}
-									{#if filter.assistant && message.role === 'assistant'}
-										<Telemetry {message} />
-									{/if}
-									{#if filter.tool && message.role === 'tool'}
-										<Telemetry {message} />
-									{/if}
-									{#if filter.generic_assistant && message.role === 'generic_assistant'}
-										<Telemetry {message} />
-									{/if}
-									{#if filter.generic_user && message.role === 'generic_user'}
-										<Telemetry {message} />
-									{/if}
-									{#if filter.developer && message.role === 'developer'}
-										<Telemetry {message} />
-									{/if}
+									<Telemetry {message} {filter} />
 								{/each}
 							</ul>
 						</Tabs.Content>
 						<Tabs.Content value="hyperparameters" class="p-2">empty</Tabs.Content>
-						<Tabs.Content value="details" class="flex w-full p-2"
-							><ol>
-								<li class="flex flex-col">
-									Additional parameters: <span class="bg-white/5"
-										>{JSON.stringify(data.additional_params)}</span
-									>
-								</li>
-								<li>Max tokens: {data.max_tokens}</li>
-								<li>Model description: {data.model_description}</li>
-								<li>Preamble: {data.preamble}</li>
-								<li class="flex flex-col">
-									Resources: <span class="bg-white/5">{JSON.stringify(data.resources)}</span>
-								</li>
-								<li>Temperature: {data.temperature}</li>
-							</ol>
-							<CodeBlock
-								text={JSON.stringify(data, null, 2)}
-								class=" overflow-scroll whitespace-pre-wrap"
-								language="json"
-							/>
+						<Tabs.Content value="details" class="flex w-full flex-col gap-4 p-2">
+							<section class="grid grid-cols-2 gap-3">
+								<!-- TODO: pop these all into a tiny component maybe? -->
+								<ol class="flex flex-col gap-3">
+									<li>
+										<Card.Root>
+											<Card.Header>
+												<Card.Title>Additional parameters</Card.Title>
+											</Card.Header>
+											<Card.Content>
+												<CodeBlock
+													text={JSON.stringify(data.additional_params, null, 2)}
+													class="overflow-scroll whitespace-pre-wrap"
+													language="json"
+												/>
+											</Card.Content>
+										</Card.Root>
+									</li>
+
+									<li>
+										<Card.Root>
+											<Card.Header>
+												<Card.Title>Model description</Card.Title>
+											</Card.Header>
+											<Card.Content>
+												<CodeBlock
+													text={JSON.stringify(data.model_description, null, 2)}
+													class="overflow-scroll whitespace-pre-wrap"
+													language="json"
+												/>
+											</Card.Content>
+										</Card.Root>
+									</li>
+									<li>
+										<Card.Root>
+											<Card.Header>
+												<Card.Title>Resources</Card.Title>
+											</Card.Header>
+											<Card.Content>
+												<CodeBlock
+													text={JSON.stringify(data.resources, null, 2)}
+													class="overflow-scroll whitespace-pre-wrap"
+													language="json"
+												/>
+											</Card.Content>
+										</Card.Root>
+									</li>
+								</ol>
+								<ol class="flex flex-col gap-2">
+									<li>
+										<Card.Root>
+											<Card.Header>
+												<Card.Title>Preamble</Card.Title>
+											</Card.Header>
+											<Card.Content>
+												<CodeBlock
+													text={data.preamble}
+													class="overflow-scroll whitespace-pre-wrap"
+													language="json"
+												/>
+											</Card.Content>
+										</Card.Root>
+									</li>
+									<li>
+										<Card.Root>
+											<Card.Header>
+												<Card.Title>Max tokens</Card.Title>
+											</Card.Header>
+											<Card.Content>
+												<CodeBlock
+													text={JSON.stringify(data.max_tokens, null, 2)}
+													class="overflow-scroll whitespace-pre-wrap"
+													language="json"
+												/>
+											</Card.Content>
+										</Card.Root>
+									</li>
+
+									<li>
+										<Card.Root>
+											<Card.Header>
+												<Card.Title>Temperature</Card.Title>
+											</Card.Header>
+											<Card.Content>
+												<CodeBlock
+													text={JSON.stringify(data.temperature, null, 2)}
+													class="overflow-scroll whitespace-pre-wrap"
+													language="json"
+												/>
+											</Card.Content>
+										</Card.Root>
+									</li>
+								</ol>
+							</section>
+							<Separator />
+							<Card.Root>
+								<Accordion.Root type="single">
+									<Accordion.Item value="item-1">
+										<Card.Header>
+											<Accordion.Trigger>
+												<Card.Title>Raw telemetry payload</Card.Title>
+											</Accordion.Trigger>
+										</Card.Header>
+										<Accordion.Content>
+											<Card.Content>
+												<CodeBlock
+													text={JSON.stringify(data, null, 2)}
+													class=" overflow-scroll whitespace-pre-wrap"
+													language="json"
+												/>
+											</Card.Content>
+										</Accordion.Content>
+									</Accordion.Item>
+								</Accordion.Root>
+							</Card.Root>
 						</Tabs.Content>
 					</ScrollArea>
 				</Tabs.Root>

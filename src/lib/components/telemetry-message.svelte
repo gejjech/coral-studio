@@ -4,11 +4,15 @@
 	import Wrench from 'phosphor-icons-svelte/IconWrenchRegular.svelte';
 	import CodeBlock from '$lib/components/code-block.svelte';
 	import Separator from '$lib/components/ui/separator/separator.svelte';
+	import * as Tooltip from './ui/tooltip';
+	import { tools } from '$lib/mcptools';
 
 	let {
-		message
+		message,
+		filter
 	}: {
 		message: any;
+		filter: any;
 	} = $props();
 
 	const roleMap = {
@@ -51,48 +55,51 @@
 	const Icon = $derived(roleData.icon || null);
 </script>
 
-<li
-	class={`bg-sidebar flex flex-row gap-4 rounded-lg border-2 p-4 py-6 text-sm ${roleData.borderClass}`}
->
-	<div
-		class={`bg-input relative h-6 w-6 self-center rounded-lg p-5 *:absolute *:inset-0 *:m-auto *:h-6 *:w-6`}
+{#if filter[message.role]}
+	<li
+		class={`bg-sidebar flex flex-row gap-4 rounded-lg border-2 p-4 py-6 text-sm ${roleData.borderClass}`}
 	>
-		{#if roleData.icon != null}
-			<Icon class={roleData.textClass} />
-		{:else}
-			<span class="text-muted-foreground">?</span>
-		{/if}
-	</div>
+		<div
+			class={`bg-input relative h-6 w-6 self-center rounded-lg p-5 *:absolute *:inset-0 *:m-auto *:h-6 *:w-6`}
+		>
+			{#if roleData.icon != null}
+				<Icon class={roleData.textClass} />
+			{:else}
+				<span class="text-muted-foreground">?</span>
+			{/if}
+		</div>
 
-	<section class="text-muted-foreground flex w-full flex-col gap-2">
-		{#if message.content && message.content.length > 0}
-			<span class="text-foreground font-bold">{roleData.label}</span>
+		<section class="text-muted-foreground flex w-full flex-col gap-2">
+			{#if message.content && message.content.length > 0}
+				<span class="text-foreground font-bold">{roleData.label}</span>
 
-			{#each message.content as part}
-				{#if message.role != 'user'}
-					<CodeBlock
-						text={part.text}
-						class=" max-w-full  whitespace-break-spaces "
-						language="json"
-					/>
-				{:else}
-					<p class="whitespace-pre-wrap">{part.text}</p>
-				{/if}
-			{/each}
-		{:else if message.tool_calls}
-			<span class="text-foreground font-bold">Agent invoked tools</span>
-			<ul>
-				{#each message.tool_calls as toolCall}
-					<li>
-						<span class="font-bold">{toolCall.function.name} </span>
-						<CodeBlock text={toolCall.function.arguments} class="max-w-max" language="json" />
-					</li>
+				{#each message.content as part}
+					{#if message.role != 'user'}
+						<CodeBlock
+							text={part.text}
+							class=" max-w-full  whitespace-break-spaces "
+							language="json"
+						/>
+					{:else}
+						<p class="whitespace-pre-wrap">{part.text}</p>
+					{/if}
 				{/each}
-			</ul>
-		{:else}
-			<p class="text-gray-400 italic">No content</p>
-		{/if}
-	</section>
-</li>
+			{:else if message.tool_calls}
+				<span class="text-foreground font-bold">Agent invoked tools</span>
+				<ul>
+					{#each message.tool_calls as toolCall}
+						<li>
+							<span class="font-bold">{toolCall.function.name}</span>
 
-<Separator orientation="vertical" class="separator ml-6 h-6 max-h-6 min-h-6" />
+							<CodeBlock text={toolCall.function.arguments} class="max-w-max" language="json" />
+						</li>
+					{/each}
+				</ul>
+			{:else}
+				<p class="text-gray-400 italic">No content</p>
+			{/if}
+		</section>
+	</li>
+
+	<Separator orientation="vertical" class="separator ml-6 h-6 max-h-6 min-h-6" />
+{/if}
