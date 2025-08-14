@@ -38,7 +38,7 @@
 	let testSuccess: boolean | null = $state(null);
 	let testing = $state(false);
 
-	let host = $state('');
+	let host = $state('127.0.0.1:5555');
 
 	const debouncedTest = useDebounce(async () => {
 		testSuccess = null;
