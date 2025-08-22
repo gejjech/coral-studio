@@ -23,7 +23,7 @@
 	import { socketCtx } from '$lib/socket.svelte';
 	import { toggleMode } from 'mode-watcher';
 
-	import CreateSession from '$lib/components/dialogs/create-session.svelte';
+	import { CreateSession } from '$lib/components/dialogs/create-session';
 
 	import ServerSwitcher from './server-switcher.svelte';
 	import NavBundle from './nav-bundle.svelte';
@@ -31,7 +31,7 @@
 	import Tour from './tour/tour.svelte';
 	import { onMount } from 'svelte';
 
-  import createClient from "openapi-fetch"
+	import createClient from 'openapi-fetch';
 	import type { paths, components } from '../../generated/api';
 	import { Session } from '$lib/session.svelte';
 
@@ -53,16 +53,18 @@
 	const refreshAgents = async () => {
 		if (!sessCtx.connection) return;
 		try {
-      const client = createClient<paths>({baseUrl: `${location.protocol}//${sessCtx.connection.host}`})
+			const client = createClient<paths>({
+				baseUrl: `${location.protocol}//${sessCtx.connection.host}`
+			});
 
 			connecting = true;
 			error = null;
 			sessCtx.registry = null;
-      
-			const agents = (await client.GET("/api/v1/agents")).data!;
+
+			const agents = (await client.GET('/api/v1/agents')).data!;
 
 			sessCtx.registry = Object.fromEntries(agents.map((agent) => [agent.id, agent]));
-			sessCtx.sessions = (await client.GET("/api/v1/sessions")).data!;
+			sessCtx.sessions = (await client.GET('/api/v1/sessions')).data!;
 
 			connecting = false;
 		} catch (e) {
