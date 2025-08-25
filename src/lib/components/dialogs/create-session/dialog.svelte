@@ -73,9 +73,43 @@
 			SPA: true,
 			dataType: 'json',
 			validators: zod4(formSchema),
-			onUpdate({ form }) {
-				if (form.valid) {
-					// TODO: Call an external API with form.data, await the result and update form
+			async onUpdate({ form: f }) {
+				if (!f.valid) {
+					toast.error('Please fix all errors in the form.');
+					return;
+				}
+				if (!ctx.connection) return;
+				try {
+					const client = createClient<paths>({
+						baseUrl: `${location.protocol}//${ctx.connection.host}`
+					});
+					const res = await client.POST('/api/v1/sessions', {
+						body: asJson
+					});
+
+					if (res.error) {
+						// todo @alan there should probably be an api class where we can generic-ify the handling of this error
+						// with a proper type implementation too..!
+						let error: { message: string; stackTrace: string[] } = res.error;
+						console.error(error.stackTrace);
+
+						toast.error(`Failed to create session: ${error.message}`);
+						return;
+					}
+					if (res.data) {
+						if (!ctx.sessions) ctx.sessions = [];
+						ctx.sessions.push(res.data.session_id);
+						ctx.session = new Session({
+							...ctx.connection,
+							session: res.data.session_id
+						});
+						open = false;
+					} else {
+						throw new Error('no data received');
+					}
+				} catch (e) {
+					console.log(e);
+					toast.error(`Failed to create session: ${e}`);
 				}
 			}
 		})
@@ -90,7 +124,7 @@
 			applicationId: data.application_id,
 			privacyKey: data.privacy_key,
 			agents: Object.entries(data.agent_graph?.agents ?? {})
-				.filter(([name, agent]) => agent.provider.type === 'local')
+				.filter(([_, agent]) => agent.provider.type === 'local')
 				.map(([name, agent]) => ({
 					name,
 					agentName: agent.agent_name,
@@ -220,7 +254,7 @@
 												agentName: value,
 												provider: {
 													type: 'local',
-													runtime: agents[value]?.runtimes.at(-1) ?? 'executable'
+													runtime: agents[value]?.runtimes?.at(-1) ?? 'executable'
 												},
 												blocking: true,
 												name: value + (count > 0 ? `-${count + 1}` : ''),
@@ -366,14 +400,16 @@
 													<li>
 														<Checkbox
 															bind:checked={
-																() => $formData.agents[selectedAgent!]!.customTools.has(tool),
+																() =>
+																	$formData.agents[selectedAgent!]?.customTools?.has(tool) ?? false,
 																() => {}
 															}
 															onCheckedChange={(checked) => {
+																if (selectedAgent === null || !$formData.agents[selectedAgent])
+																	return;
 																if (checked)
 																	$formData.agents[selectedAgent!]!.customTools.add(tool);
 																else $formData.agents[selectedAgent!]!.customTools.delete(tool);
-																console.log({ checked, agents: $formData.agents });
 																$formData.agents = $formData.agents;
 															}}
 														/>
@@ -428,50 +464,14 @@
 						</ModalCollapsible>
 						<ModalCollapsible title="Export">
 							<CodeBlock text={JSON.stringify(asJson, null, 2)} class="" language="json" />
-							<CodeBlock text={JSON.stringify($errors, null, 2)} class="" language="json" />
+							<!-- TODO: add an Issues: collapsible with a user friendly list (e.g "Agents > my-agent > API_KEY : misssing required field", and it's clickable)
+							<!-- <CodeBlock text={JSON.stringify($errors, null, 2)} class="" language="json" /> -->
 						</ModalCollapsible>
 					</section>
 				</ScrollArea>
 
 				<Dialog.Footer>
-					<Button
-						type="submit"
-						onclick={async () => {
-							if (!ctx.connection) return;
-							try {
-								const client = createClient<paths>({
-									baseUrl: `${location.protocol}//${ctx.connection.host}`
-								});
-								const res = await client.POST('/api/v1/sessions', {
-									body: asJson
-								});
-
-								if (res.error) {
-									// todo @alan there should probably be an api class where we can generic-ify the handling of this error
-									// with a proper type implementation too..!
-									let error: { message: string; stackTrace: string[] } = res.error;
-									console.error(error.stackTrace);
-
-									toast.error(`Failed to create session: ${error.message}`);
-									return;
-								}
-								if (res.data) {
-									if (!ctx.sessions) ctx.sessions = [];
-									ctx.sessions.push(res.data.session_id);
-									ctx.session = new Session({
-										...ctx.connection,
-										session: res.data.session_id
-									});
-									open = false;
-								} else {
-									throw new Error('no data received');
-								}
-							} catch (e) {
-								console.log(e);
-								toast.error(`Failed to create session: ${e}`);
-							}
-						}}>Create</Button
-					>
+					<Form.Button>Create</Form.Button>
 				</Dialog.Footer>
 			</form>
 		</Dialog.Content>
