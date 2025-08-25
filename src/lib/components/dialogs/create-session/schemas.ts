@@ -14,6 +14,7 @@ const formSchema = z.object({
 					runtime: z.union([z.literal('executable'), z.literal('docker')])
 				})
 			]),
+			systemPrompt: z.string().optional(),
 			customTools: z.set(z.string()),
 			blocking: z.boolean(),
 			options: z.record(

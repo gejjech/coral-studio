@@ -53,6 +53,11 @@
 
 	type CreateSessionRequest = components['schemas']['CreateSessionRequest'];
 
+	/// {a?: number | undefined} -> {a: number | undefined}
+	type Complete<T> = {
+		[P in keyof Required<T>]: Pick<T, P> extends Required<Pick<T, P>> ? T[P] : T[P] | undefined;
+	};
+
 	let ctx = sessionCtx.get();
 
 	const inputTypes: {
@@ -153,9 +158,10 @@
 							provider: agent.provider,
 							blocking: agent.blocking,
 							options: agent.options as any, // FIXME: !!!
+							system_prompt: agent.systemPrompt,
 							agent_name: agent.agentName,
 							tools: Array.from(agent.customTools)
-						} satisfies NonNullable<CreateSessionRequest['agent_graph']>['agents'][string]
+						} satisfies Complete<NonNullable<CreateSessionRequest['agent_graph']>['agents'][string]>
 					])
 				),
 				tools: Object.fromEntries(Array.from(usedTools).map((tool) => [tool, tools[tool]])) as any, // FIXME: !!!
@@ -257,6 +263,7 @@
 													type: 'local',
 													runtime: agents[value]?.runtimes?.at(-1) ?? 'executable'
 												},
+												systemPrompt: undefined,
 												blocking: true,
 												name: value + (count > 0 ? `-${count + 1}` : ''),
 												options: {},
@@ -276,8 +283,8 @@
 									</Combobox>
 								</ul>
 							</ScrollArea>
-							{#if selectedAgent !== null}
-								{@const agent = $formData.agents[selectedAgent]}
+							{#if selectedAgent !== null && $formData.agents.length > selectedAgent}
+								{@const agent = $formData.agents[selectedAgent]!}
 								{@const availableOptions = agent && agents[agent.agentName]?.options}
 								<Tabs.Root value="options" class="min-h-0">
 									<Tabs.List class="w-full">
@@ -394,6 +401,21 @@
 													</Form.ElementField>
 												{/each}
 											{/if}
+										</Tabs.Content>
+										<Tabs.Content value="prompt">
+											<Form.ElementField {form} name="agents[{selectedAgent}].systemPrompt">
+												<Form.Control>
+													{#snippet children({ props })}
+														<Form.Label class="text-muted-foreground leading-tight"
+															>Additional system prompt to add to this agent.</Form.Label
+														>
+														<Textarea
+															{...props}
+															bind:value={$formData.agents[selectedAgent!]!.systemPrompt}
+														/>
+													{/snippet}
+												</Form.Control>
+											</Form.ElementField>
 										</Tabs.Content>
 										<Tabs.Content value="tools">
 											<Form.Fieldset {form} name="agents[{selectedAgent}].customTools">
