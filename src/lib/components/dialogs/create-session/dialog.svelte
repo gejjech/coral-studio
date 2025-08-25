@@ -49,6 +49,7 @@
 	import createClient from 'openapi-fetch';
 	import type { paths, components } from '../../../../generated/api';
 	import SidebarMenuAction from '$lib/components/ui/sidebar/sidebar-menu-action.svelte';
+	import FormField from '$lib/components/ui/form/form-field.svelte';
 
 	type CreateSessionRequest = components['schemas']['CreateSessionRequest'];
 
@@ -395,26 +396,40 @@
 											{/if}
 										</Tabs.Content>
 										<Tabs.Content value="tools">
-											<ul>
-												{#each Object.keys(tools) as tool (tool)}
-													<li>
-														<Checkbox
-															bind:checked={
-																() =>
-																	$formData.agents[selectedAgent!]?.customTools?.has(tool) ?? false,
-																() => {}
-															}
-															onCheckedChange={(checked) => {
-																if (selectedAgent === null || !$formData.agents[selectedAgent])
-																	return;
-																if (checked)
-																	$formData.agents[selectedAgent!]!.customTools.add(tool);
-																else $formData.agents[selectedAgent!]!.customTools.delete(tool);
-																$formData.agents = $formData.agents;
-															}}
-														/>
-													</li>{/each}
-											</ul>
+											<Form.Fieldset {form} name="agents[{selectedAgent}].customTools">
+												<ul class="flex flex-col gap-2">
+													{#each Object.keys(tools) as tool (tool)}
+														<li class="flex gap-2">
+															<Form.Control>
+																{#snippet children({ props })}
+																	<Checkbox
+																		{...props}
+																		value={tool}
+																		bind:checked={
+																			() =>
+																				$formData.agents[selectedAgent!]?.customTools?.has(tool) ??
+																				false,
+																			() => {}
+																		}
+																		onCheckedChange={(checked) => {
+																			if (
+																				selectedAgent === null ||
+																				!$formData.agents[selectedAgent]
+																			)
+																				return;
+																			if (checked)
+																				$formData.agents[selectedAgent!]!.customTools.add(tool);
+																			else
+																				$formData.agents[selectedAgent!]!.customTools.delete(tool);
+																			$formData.agents = $formData.agents;
+																		}}
+																	/>
+																	<Form.Label>{tool}</Form.Label>
+																{/snippet}
+															</Form.Control>
+														</li>{/each}
+												</ul>
+											</Form.Fieldset>
 										</Tabs.Content>
 									</ScrollArea>
 								</Tabs.Root>
