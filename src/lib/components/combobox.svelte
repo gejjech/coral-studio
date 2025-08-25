@@ -20,7 +20,8 @@
 		align,
 
 		option: optionChild,
-		trigger
+		trigger,
+		class: className
 	}: {
 		open?: boolean;
 		value?: string;
@@ -35,6 +36,7 @@
 
 		option?: Snippet<[{ option: string }]>;
 		trigger?: Snippet<[{ props: Record<string, unknown> }]>;
+		class?: string;
 	} = $props();
 
 	let triggerRef = $state<HTMLButtonElement>(null!);
@@ -57,8 +59,8 @@
 			{:else}
 				<Button
 					variant="outline"
-					class="w-[200px] justify-between"
 					{...props}
+					class={cn('w-[200px] justify-between', className)}
 					role="combobox"
 					aria-expanded={open}
 				>
