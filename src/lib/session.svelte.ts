@@ -1,6 +1,8 @@
 import type { Agent, Message, Thread } from './threads';
 import { toast } from 'svelte-sonner';
 
+import type { components } from '../generated/api';
+
 export class Session {
 	private socket: WebSocket;
 	public connected = $state(false);
@@ -13,7 +15,9 @@ export class Session {
 	public agentId: string | null = $state(null);
 
 	public agents: { [id: string]: Agent } = $state({});
-	public threads: { [id: string]: Thread & { unread: number } } = $state({});
+	public threads: {
+		[id: string]: Omit<Thread, 'messages'> & { messages: undefined; unread: number };
+	} = $state({});
 	public messages: { [thread: string]: Message[] } = $state({});
 
 	constructor({
@@ -32,7 +36,7 @@ export class Session {
 		this.privKey = privacyKey;
 		this.session = session;
 		this.socket = new WebSocket(
-			`ws://${host}/debug/${appId}/${privacyKey}/${session}/?timeout=10000`
+			`ws://${host}/ws/v1/debug/${appId}/${privacyKey}/${session}/?timeout=10000`
 		);
 
 		this.socket.onopen = () => {
@@ -54,17 +58,17 @@ export class Session {
 		this.socket.onmessage = (ev) => {
 			let data = null;
 			try {
-				data = JSON.parse(ev.data);
+				data = JSON.parse(ev.data) as components['schemas']['SocketEvent'];
 			} catch (e) {
 				toast.warning(`ws: '${ev.data}'`);
 				return;
 			}
 
-			switch (data.type ?? '') {
-				case 'DebugAgentRegistered':
+			switch (data.type) {
+				case 'debug_agent_registered':
 					this.agentId = data.id;
 					break;
-				case 'ThreadList':
+				case 'thread_list':
 					for (const thread of data.threads) {
 						this.messages[thread.id] = thread.messages ?? [];
 						this.threads[thread.id] = {
@@ -74,34 +78,39 @@ export class Session {
 						};
 					}
 					break;
-				case 'AgentList':
+				case 'agent_list':
 					for (const agent of data.agents) {
 						this.agents[agent.id] = agent;
 					}
 					break;
-				case 'org.coralprotocol.coralserver.session.Event.AgentStateUpdated':
-					this.agents[data.agentId].state = data.state;
-					break;
-				case 'org.coralprotocol.coralserver.session.Event.ThreadCreated':
-					console.log('new thread');
-					this.threads[data.id] = {
-						id: data.id,
-						name: data.name,
-						participants: data.participants,
-						summary: data.summary,
-						creatorId: data.creatorId,
-						isClosed: data.isClosed,
-						unread: 0
-					};
-					this.messages[data.id] = data.messages ?? [];
-					break;
-				case 'org.coralprotocol.coralserver.session.Event.MessageSent':
-					if (data.threadId in this.messages) {
-						console.log('message setn');
-						this.messages[data.threadId].push(data.message);
-						this.threads[data.threadId].unread += 1;
-					} else {
-						console.warn('uh oh', { data: data, messages: this.messages });
+				case 'session':
+					switch (data.event.type) {
+						case 'agent_state_updated':
+							this.agents[data.event.agent_id]!.state = data.event.state;
+							break;
+						case 'thread_created':
+							console.log('new thread');
+							this.threads[data.event.id] = {
+								id: data.event.id,
+								name: data.event.name,
+								participants: data.event.participants,
+								summary: data.event.summary,
+								creator_id: data.event.creator_id,
+								is_closed: false,
+								messages: undefined,
+								unread: 0
+							};
+							this.messages[data.event.id] = [];
+							break;
+						case 'message_sent':
+							if (data.event.thread_id in this.messages) {
+								console.log('message setn');
+								this.messages[data.event.thread_id]!.push(data.event.message);
+								this.threads[data.event.thread_id]!.unread += 1;
+							} else {
+								console.warn('uh oh', { data: data, messages: this.messages });
+							}
+							break;
 					}
 					break;
 			}
