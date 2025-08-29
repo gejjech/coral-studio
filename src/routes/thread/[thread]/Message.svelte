@@ -16,10 +16,10 @@
 		message,
 		agentFilters,
 		class: className,
-    session
+		session
 	}: {
 		message: Message;
-    session?: Session | null;
+		session?: Session | null;
 		agentFilters?: SvelteSet<string>;
 		class?: string;
 	} = $props();
@@ -31,7 +31,12 @@
 </script>
 
 {#if session}
-  <Telemetry bind:open={telemetryDialogOpen} {session} messageId={message.id} threadId={message.threadId} />
+	<Telemetry
+		bind:open={telemetryDialogOpen}
+		{session}
+		messageId={message.id}
+		threadId={message.threadId}
+	/>
 {/if}
 
 <Card.Root class={cn('gap-2 py-4', className)}>

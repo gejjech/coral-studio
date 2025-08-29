@@ -4,11 +4,15 @@
 	import Wrench from 'phosphor-icons-svelte/IconWrenchRegular.svelte';
 	import CodeBlock from '$lib/components/code-block.svelte';
 	import Separator from '$lib/components/ui/separator/separator.svelte';
+	import * as Accordion from '$lib/components/ui/accordion/index.js';
+	import { Button } from './ui/button';
 
 	let {
-		message
+		message,
+		filter
 	}: {
 		message: any;
+		filter: any;
 	} = $props();
 
 	const roleMap = {
@@ -51,48 +55,63 @@
 	const Icon = $derived(roleData.icon || null);
 </script>
 
-<li
-	class={`bg-sidebar flex flex-row gap-4 rounded-lg border-2 p-4 py-6 text-sm ${roleData.borderClass}`}
->
-	<div
-		class={`bg-input relative h-6 w-6 self-center rounded-lg p-5 *:absolute *:inset-0 *:m-auto *:h-6 *:w-6`}
+<!-- accordian code is here if we need it, but currently there isnt really anything to put in it -->
+
+{#if filter[message.role]}
+	<!-- <Accordion.Root class="relative" type="single">
+		<Accordion.Item value="item-1"> -->
+	<li
+		class={`bg-card  flex flex-col gap-4 rounded-lg border-2 p-4 py-6 text-sm ${roleData.borderClass}`}
 	>
-		{#if roleData.icon != null}
-			<Icon class={roleData.textClass} />
-		{:else}
-			<span class="text-muted-foreground">?</span>
-		{/if}
-	</div>
-
-	<section class="text-muted-foreground flex w-full flex-col gap-2">
-		{#if message.content && message.content.length > 0}
-			<span class="text-foreground font-bold">{roleData.label}</span>
-
-			{#each message.content as part}
-				{#if message.role != 'user'}
-					<CodeBlock
-						text={part.text}
-						class=" max-w-full  whitespace-break-spaces "
-						language="json"
-					/>
+		<div class="flex gap-4">
+			<div
+				class={`relative h-6 w-6 self-center rounded-lg bg-[#e5f0ff] p-5 *:absolute *:inset-0 *:m-auto *:h-6 *:w-6 dark:bg-[#1f2937]`}
+			>
+				{#if roleData.icon != null}
+					<Icon class={roleData.textClass} />
 				{:else}
-					<p class="whitespace-pre-wrap">{part.text}</p>
+					<span class="text-muted-foreground">?</span>
 				{/if}
-			{/each}
-		{:else if message.tool_calls}
-			<span class="text-foreground font-bold">Agent invoked tools</span>
-			<ul>
-				{#each message.tool_calls as toolCall}
-					<li>
-						<span class="font-bold">{toolCall.function.name} </span>
-						<CodeBlock text={toolCall.function.arguments} class="max-w-max" language="json" />
-					</li>
-				{/each}
-			</ul>
-		{:else}
-			<p class="text-gray-400 italic">No content</p>
-		{/if}
-	</section>
-</li>
+			</div>
+			<section class="text-muted-foreground flex w-full flex-col gap-2">
+				<!-- <Accordion.Trigger class="absolute top-5 right-5 h-12 w-12 cursor-pointer"
+						></Accordion.Trigger> -->
 
-<Separator orientation="vertical" class="separator ml-6 h-6 max-h-6 min-h-6" />
+				{#if message.content && message.content.length > 0}
+					<span class="text-foreground font-bold">{roleData.label}</span>
+					{#each message.content as part}
+						{#if message.role != 'user'}
+							<CodeBlock
+								text={part.text}
+								class=" max-w-full  whitespace-break-spaces "
+								language="json"
+							/>
+						{:else}
+							<p class="whitespace-pre-wrap">{part.text}</p>
+						{/if}
+					{/each}
+				{:else if message.tool_calls}
+					<span class="text-foreground font-bold">Agent invoked tools</span>
+					<ul>
+						{#each message.tool_calls as toolCall}
+							<li>
+								<span class="font-bold">{toolCall.function.name}</span>
+								<CodeBlock text={toolCall.function.arguments} class="max-w-max" language="json" />
+							</li>
+						{/each}
+					</ul>
+				{:else}
+					<p class="text-gray-400 italic">No content</p>
+				{/if}
+			</section>
+		</div>
+		<!-- <Accordion.Content class="flex flex-col gap-2">
+					<Separator />
+					
+				</Accordion.Content> -->
+	</li>
+	<!-- </Accordion.Item>
+	</Accordion.Root> -->
+
+	<Separator orientation="vertical" class="separator ml-6 h-6 max-h-6 min-h-6" />
+{/if}

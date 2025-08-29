@@ -2,6 +2,7 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import { toast } from 'svelte-sonner';
 
 	import CheckIcon from 'phosphor-icons-svelte/IconCheckRegular.svelte';
 	import CaretUpDown from 'phosphor-icons-svelte/IconCaretUpDownRegular.svelte';
@@ -39,7 +40,7 @@
 	let testSuccess: boolean | null = $state(null);
 	let testing = $state(false);
 
-	let host = $state('');
+	let host = $state('127.0.0.1:5555');
 
 	const debouncedTest = useDebounce(async () => {
 		testSuccess = null;
@@ -51,6 +52,14 @@
 			const res = await client.GET('/api/v1/agents');
 			await tick();
 			testSuccess = res.response.status === 200;
+			if (res.status === 200) {
+				testSuccess = null;
+				servers.current.push(host);
+				selected.current = host;
+				dialogOpen = false;
+				host = '';
+				toast.success('Server added successfully');
+			}
 		} catch {
 			await tick();
 			testSuccess = false;
@@ -136,39 +145,35 @@
 	<Dialog.Content>
 		<Dialog.Header>
 			<Dialog.Title>Add a server</Dialog.Title>
-			<Dialog.Description></Dialog.Description>
 		</Dialog.Header>
 		<form>
 			<section class="grid grid-cols-2">
 				<TooltipLabel>Host</TooltipLabel>
-				<Input placeholder="localhost:5555" bind:value={host} onkeypress={testConnection} />
+				<Input placeholder="localhost:5555" bind:value={host} />
 			</section>
 		</form>
 		<Dialog.Footer class="items-center">
-			{#if testSuccess === true}
-				<p class="text-sm text-green-400" transition:fade>Connection successful.</p>
-			{:else if testSuccess === false}
-				<p class="text-destructive text-sm" transition:fade>Connection failed.</p>
+			{#if testSuccess === false}
+				<p class="text-destructive text-sm" transition:fade>Connection failed, add anyway?</p>
+				<Button
+					onclick={() => {
+						testSuccess = null;
+						servers.current.push(host);
+						selected.current = host;
+						dialogOpen = false;
+						host = '';
+						toast.success('Server added successfully');
+					}}>Add</Button
+				>
 			{/if}
 			<Button
-				variant="outline"
 				disabled={testing}
 				onclick={(e) => {
 					e.preventDefault();
 					testSuccess = null;
 					testing = true;
 					testConnection();
-				}}>Test</Button
-			>
-			<Button
-				disabled={testSuccess !== true}
-				onclick={() => {
-					testSuccess = null;
-					servers.current.push(host);
-					selected.current = host;
-					dialogOpen = false;
-					host = '';
-				}}>Add</Button
+				}}>Connect</Button
 			>
 		</Dialog.Footer>
 	</Dialog.Content>
