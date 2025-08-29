@@ -26,7 +26,7 @@ export class AgentLogs {
 		agentId: string
 	) {
 		this.socket = new WebSocket(
-			`http://${host}/debug/${appId}/${privacyKey}/${session}/${agentId}/logs`
+			`http://${host}/ws/v1/debug/${appId}/${privacyKey}/${session}/${agentId}/logs`
 		);
 		this.socket.onopen = () => {
 			this.connected = true;

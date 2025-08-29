@@ -1,22 +1,10 @@
 import { Context } from 'runed';
 import type { Session } from './session.svelte';
-export type Message = {
-	id: string;
-	threadId: string;
-	senderId: string;
-	content: string;
-	timestamp: number;
-	mentions: string[];
-};
+import type { components } from '../generated/api';
 
-export type Thread = {
-	id: string;
-	name: string;
-	creatorId: string;
-	summary?: string;
-	participants: string[];
-	isClosed: boolean;
-};
+export type Message = components['schemas']['ResolvedMessage'];
+
+export type Thread = components['schemas']['ResolvedThread'];
 
 export type AgentOption = {
 	name: string;
@@ -24,43 +12,21 @@ export type AgentOption = {
 	value: string | undefined;
 } & ({ type: 'string'; default: string | null } | { type: 'number'; default: number | null });
 
-export type RegistryAgent = {
-	id: string;
-	blocking?: boolean;
-	options: { [name: string]: AgentOption };
-};
+export type Agent = components['schemas']['Agent'];
+export type PublicRegistryAgent = components['schemas']['PublicRegistryAgent'];
 
-export type Agent = {
-	type: 'local';
-	agentType: string;
-	blocking?: boolean;
-	options: { [name: string]: string | number | undefined };
-	systemPrompt?: string;
-	tools?: string[];
-	state: string; // TODO: type me
-};
+export type GraphAgentRequest = components['schemas']['AgentGraphRequest']['agents'][string];
 
 export type ToolTransport = {
 	type: 'http';
 	url: string;
 };
 
-export type CustomTool = {
-	transport: ToolTransport;
-	toolSchema: {
-		name: string;
-		description?: string;
-		inputSchema: {
-			type: 'object';
-			properties: Record<string, unknown>;
-			required?: string[];
-		};
-	};
-};
+export type CustomTool = components['schemas']['CustomTool'];
 
 export const sessionCtx = new Context<{
 	session: Session | null;
-	registry: { [id: string]: RegistryAgent } | null;
+	registry: { [id: string]: PublicRegistryAgent } | null;
 	sessions: string[] | null;
 	connection: { host: string; appId: string; privacyKey: string } | null;
 }>('sessionCtx');

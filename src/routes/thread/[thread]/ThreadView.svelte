@@ -68,7 +68,7 @@
 								i == (messages?.length ?? 0) - thread.unread && 'border-red-400'
 							)}
 						>
-							<Message {message} agentFilters={agentFilters.size > 0 ? agentFilters : undefined} />
+							<Message session={ctx.session} {message} agentFilters={agentFilters.size > 0 ? agentFilters : undefined} />
 						</div>
 					{/each}
 				</div>

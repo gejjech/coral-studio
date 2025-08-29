@@ -14,6 +14,8 @@
 	import { fade } from 'svelte/transition';
 	import { onMount, tick, untrack } from 'svelte';
 	import type { WithElementRef } from 'bits-ui';
+	import type { paths } from '../../generated/api';
+	import createClient from 'openapi-fetch';
 
 	let servers = new PersistedState<string[]>('servers', []);
 	let selected = new PersistedState<string | null>('selectedServer', null);
@@ -25,7 +27,7 @@
 			selected.current = null;
 		}
 		if (selected.current === null && servers.current.length > 0) {
-			selected.current = servers.current[0];
+			selected.current = servers.current[0] ?? null;
 		}
 	});
 	onMount(() => {
@@ -43,9 +45,12 @@
 		testSuccess = null;
 		testing = true;
 		try {
-			const res = await fetch(`http://${host}/api/v1/registry`);
+			const client = createClient<paths>({
+				baseUrl: `${location.protocol}//${host}`
+			});
+			const res = await client.GET('/api/v1/agents');
 			await tick();
-			testSuccess = res.status === 200;
+			testSuccess = res.response.status === 200;
 		} catch {
 			await tick();
 			testSuccess = false;

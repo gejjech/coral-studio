@@ -39,18 +39,18 @@
 			</Breadcrumb.Item>
 		</Breadcrumb.List>
 	</Breadcrumb.Root>
-	<Button
-		variant="ghost"
-		size="icon"
-		onclick={() => {
-			memberListOpen = !memberListOpen;
-		}}
-	>
-		<Users />
-	</Button>
-</header>
-{#if thread !== undefined && messages !== undefined}
-	<ThreadView {thread} {messages} {memberListOpen} />
-{:else}
-	<p class="text-muted-foreground mt-4 text-center text-sm">Thread not found.</p>
-{/if}
+			<Button
+				variant="ghost"
+				size="icon"
+				onclick={() => {
+					memberListOpen = !memberListOpen;
+				}}
+			>
+				<Users />
+			</Button>
+		</header>
+		{#if thread !== undefined && messages !== undefined}
+			<ThreadView {thread} {messages} {memberListOpen} />
+		{:else}
+			<p class="text-muted-foreground mt-4 text-center text-sm">Thread not found.</p>
+		{/if}

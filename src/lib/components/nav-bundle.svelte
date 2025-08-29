@@ -82,7 +82,9 @@
 														</a>
 													{/snippet}
 												</Tooltip.Trigger>
-												<Tooltip.Content><p>{subItem.title}</p></Tooltip.Content>
+												<Tooltip.Content
+													><p>{subItem.title} - {subItem.state || ''}</p></Tooltip.Content
+												>
 											</Tooltip.Root>
 										</Tooltip.Provider>
 									{/snippet}
