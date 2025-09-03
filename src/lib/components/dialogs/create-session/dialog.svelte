@@ -176,7 +176,7 @@
 {#if ctx.connection}
 	<Dialog.Root bind:open>
 		<Dialog.Content
-			class="grid max-h-[90svh] grid-cols-[100%] grid-rows-[max-content_minmax(0,1fr)_max-content] gap-y-2 lg:max-w-2xl "
+			class="grid max-h-[90svh] w-full grid-cols-[100%] grid-rows-[max-content_minmax(0,1fr)_max-content] gap-y-2 md:max-w-3xl lg:max-w-5xl"
 		>
 			<Dialog.Header>
 				<Dialog.Title>New Session</Dialog.Title>
@@ -198,18 +198,18 @@
 				<ScrollArea class="">
 					<section class="flex max-w-full flex-col gap-2">
 						<Separator class="mt-2" />
-
-						<h2>Agents</h2>
-						<section class="grid h-96 grid-cols-2 grid-rows-[min-content_1fr] gap-1 gap-x-2">
+						<section
+							class="grid h-96 grid-cols-4 grid-rows-[min-content_1fr] gap-1 gap-x-4 overflow-hidden"
+						>
 							<section class="flex h-96 flex-col gap-2">
 								<ScrollArea
 									class="bg-card text-card-foreground row-span-full flex min-h-0 grow flex-col gap-6 rounded-md border shadow-sm"
 								>
-									<ul class="flex h-full min-h-0 w-full grow flex-col content-stretch gap-2 p-4">
+									<ul class="flex h-full min-h-0 w-full grow flex-col content-stretch gap-2">
 										{#each $formData.agents as agent, i}
 											<li class="contents">
 												<Toggle
-													class="group relative flex justify-start pr-0"
+													class="group relative flex justify-start rounded-none pr-0"
 													bind:pressed={() => selectedAgent === i, () => (selectedAgent = i)}
 												>
 													<p class="grow">{agent.name}</p>
@@ -244,8 +244,8 @@
 									</ul>
 								</ScrollArea>
 								<Combobox
-									side="right"
-									align="start"
+									side="top"
+									align="center"
 									options={Object.keys(agents)}
 									searchPlaceholder="Search agents..."
 									onValueChange={(value) => {
@@ -269,9 +269,10 @@
 									}}
 								>
 									{#snippet trigger({ props })}
-										<Button {...props} size="icon" class="mt-2 w-full gap-1 px-3"
-											>Add agent <PlusIcon /></Button
-										>{/snippet}
+										<Button {...props} size="icon" class="w-full gap-1 px-3"
+											>Add agent <PlusIcon />
+										</Button>
+									{/snippet}
 									{#snippet option({ option })}
 										{option}
 									{/snippet}
@@ -280,14 +281,15 @@
 							{#if selectedAgent !== null && $formData.agents.length > selectedAgent}
 								{@const agent = $formData.agents[selectedAgent]!}
 								{@const availableOptions = agent && agents[agent.agentName]?.options}
-								<Tabs.Root value="options" class="min-h-0">
+								<Tabs.Root value="options" class="col-span-3 min-h-0">
 									<Tabs.List class="w-full">
 										<Tabs.Trigger value="options">Options</Tabs.Trigger>
 										<Tabs.Trigger value="prompt">Prompt</Tabs.Trigger>
 										<Tabs.Trigger value="tools">Tools</Tabs.Trigger>
+										<Tabs.Trigger value="groups">Groups</Tabs.Trigger>
 									</Tabs.List>
-									<ScrollArea class="min-h-0">
-										<Tabs.Content value="options" class="flex min-h-0 flex-col gap-2">
+									<ScrollArea class="h-96 px-4">
+										<Tabs.Content value="options" class="flex min-h-0 flex-col gap-4">
 											{#if availableOptions && selectedAgent !== null && $formData.agents.length > selectedAgent}
 												<Form.ElementField
 													{form}
@@ -365,10 +367,11 @@
 													<Form.ElementField
 														{form}
 														name="agents[{selectedAgent}].options.{name}.value"
+														class="flex flex-col gap-2"
 													>
 														<Form.Control>
 															{#snippet children({ props })}
-																<TooltipLabel tooltip={opt.description} class="gap-1">
+																<TooltipLabel tooltip={opt.description} class="gap-2">
 																	{name}
 																	{#if !('default' in opt) || opt.default === undefined}
 																		<span class="text-destructive">*</span>
@@ -447,12 +450,56 @@
 												</ul>
 											</Form.Fieldset>
 										</Tabs.Content>
+										<Tabs.Content value="groups" class="flex flex-col gap-2">
+											<ul class="flex flex-col gap-1">
+												{#each $formData.links as link, i}
+													<Select.Root
+														type="multiple"
+														value={link}
+														onValueChange={(value) => {
+															$formData.links[i] = value;
+															$formData.links = $formData.links;
+														}}
+													>
+														<Select.Trigger>
+															{#if link.length == 0}
+																<span class="text-muted-foreground text-sm italic"
+																	>Group {i + 1} &#40;no members&#41;</span
+																>
+															{:else if link.length == 1}
+																Group {i + 1} &#40;{link.length} member&#41;
+															{:else}
+																Group {i + 1} &#40;{link.length} members&#41;
+															{/if}
+														</Select.Trigger>
+														<Select.Content>
+															{#if $formData.agents.length == 0}
+																<span class="text-muted-foreground px-2 text-sm italic"
+																	>No agents</span
+																>
+															{/if}
+															{#each new Set($formData.agents.map((agent) => agent.name)) as id}
+																<Select.Item value={id}>{id}</Select.Item>
+															{/each}
+														</Select.Content>
+													</Select.Root>
+												{/each}
+											</ul>
+											<Button
+												size="icon"
+												class="w-full gap-1 px-3"
+												disabled={($formData.links.at(-1)?.length ?? 1) == 0}
+												onclick={() => {
+													$formData.links = [...$formData.links, []];
+												}}>Create group<PlusIcon /></Button
+											>
+										</Tabs.Content>
 									</ScrollArea>
 								</Tabs.Root>
 							{/if}
 						</section>
 
-						<ModalCollapsible title="Groups">
+						<!-- <ModalCollapsible title="Groups">
 							<p class="text-muted-foreground text-sm leading-tight">
 								Define a list of groups, where each agent in a group can all interact.
 							</p>
@@ -483,16 +530,8 @@
 										</Select.Content>
 									</Select.Root>
 								{/each}
-								<Button
-									size="icon"
-									class="w-fit gap-1 px-3"
-									disabled={($formData.links.at(-1)?.length ?? 1) == 0}
-									onclick={() => {
-										$formData.links = [...$formData.links, []];
-									}}>New group<PlusIcon /></Button
-								>
 							</ul>
-						</ModalCollapsible>
+						</ModalCollapsible> -->
 						<!-- <ModalCollapsible title="Export">
 							<CodeBlock text={JSON.stringify(asJson, null, 2)} class="" language="json" />
 							<!-- TODO: add an Issues: collapsible with a user friendly list (e.g "Agents > my-agent > API_KEY : misssing required field", and it's clickable)
