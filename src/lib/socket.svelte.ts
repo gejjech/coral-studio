@@ -45,19 +45,19 @@ export class UserInput {
 		this.sock.onAny((event, ...args) => {
 			console.log('user-input:', { event, args });
 		});
-		this.sock.on('agent_request', (req) => {
-			console.log('agent_request', req);
+		this.sock.on('agentRequest', (req) => {
+			console.log('agentRequest', req);
 			this.requests[req.id] = req;
 		});
-		this.sock.on('agent_answer', (req) => {
-			console.log('agent_answer', req);
+		this.sock.on('agentAnswer', (req) => {
+			console.log('agentAnswer', req);
 			this.requests[req.id].agentAnswer = req.answer;
 		});
 	}
 
 	respond(id: string, value: string) {
 		this.requests[id].userQuestion = value;
-		this.sock.emit('user_response', { id, value });
+		this.sock.emit('userResponse', { id, value });
 	}
 }
 export const socketCtx = new Context<{

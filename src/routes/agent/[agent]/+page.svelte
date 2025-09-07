@@ -27,7 +27,7 @@
 	);
 
 	let logs = $derived(logCtx.logs[agentName]);
-	const ts_fmt = (d: Date) =>
+	const tsFmt = (d: Date) =>
 		`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
 </script>
 

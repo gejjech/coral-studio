@@ -104,10 +104,10 @@
 					}
 					if (res.data) {
 						if (!ctx.sessions) ctx.sessions = [];
-						ctx.sessions.push(res.data.session_id);
+						ctx.sessions.push(res.data.sessionId);
 						ctx.session = new Session({
 							...ctx.connection,
-							session: res.data.session_id
+							session: res.data.sessionId
 						});
 						open = false;
 					} else {
@@ -126,14 +126,14 @@
 	const importFromJson = (json: string) => {
 		const data: CreateSessionRequest = JSON.parse(json);
 		$formData = {
-			links: data.agent_graph?.links ?? [],
-			applicationId: data.application_id,
-			privacyKey: data.privacy_key,
-			agents: Object.entries(data.agent_graph?.agents ?? {})
+			links: data.agentGraph?.links ?? [],
+			applicationId: data.applicationId,
+			privacyKey: data.privacyKey,
+			agents: Object.entries(data.agentGraph?.agents ?? {})
 				.filter(([_, agent]) => agent.provider.type === 'local')
 				.map(([name, agent]) => ({
 					name,
-					agentName: agent.agent_name,
+					agentName: agent.agentName,
 					provider: agent.provider as any, // FIXME: annoying hack since ts doesn't know we filtered for local providers
 					blocking: agent.blocking ?? true,
 					options: agent.options,
@@ -148,9 +148,9 @@
 	) as Set<keyof typeof tools>;
 	let asJson: CreateSessionRequest = $derived.by(() => {
 		return {
-			privacy_key: $formData.privacyKey,
-			application_id: $formData.applicationId,
-			agent_graph: {
+			privacyKey: $formData.privacyKey,
+			applicationId: $formData.applicationId,
+			agentGraph: {
 				agents: Object.fromEntries(
 					$formData.agents.map((agent) => [
 						agent.name,
@@ -158,10 +158,10 @@
 							provider: agent.provider,
 							blocking: agent.blocking,
 							options: agent.options as any, // FIXME: !!!
-							system_prompt: agent.systemPrompt,
-							agent_name: agent.agentName,
+							systemPrompt: agent.systemPrompt,
+							agentName: agent.agentName,
 							tools: Array.from(agent.customTools)
-						} satisfies Complete<NonNullable<CreateSessionRequest['agent_graph']>['agents'][string]>
+						} satisfies Complete<NonNullable<CreateSessionRequest['agentGraph']>['agents'][string]>
 					])
 				),
 				tools: Object.fromEntries(Array.from(usedTools).map((tool) => [tool, tools[tool]])) as any, // FIXME: !!!

@@ -41,11 +41,11 @@ const toolCalls: {
 		};
 
 		questions[`${sessionId}-${agentId}`] = q;
-		sock.emit('agent_request', q);
+		sock.emit('agentRequest', q);
 		return new Promise((res) => {
-			sock.on('user_response', ({ id: resId, value }) => {
+			sock.on('userResponse', ({ id: resId, value }) => {
 				questions[`${sessionId}-${agentId}`].userQuestion = value;
-				console.log('user_response', { id, resId, value });
+				console.log('userResponse', { id, resId, value });
 				if (resId !== id) return;
 				res(new Response(value));
 			});
@@ -62,7 +62,7 @@ const toolCalls: {
 			);
 		q.agentAnswer = body?.response as string;
 		const sock = getSock();
-		sock.emit('agent_answer', { id: q.id, answer: q.agentAnswer });
+		sock.emit('agentAnswer', { id: q.id, answer: q.agentAnswer });
 		return new Response(q.agentAnswer);
 	}
 };

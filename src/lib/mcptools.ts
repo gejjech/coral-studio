@@ -6,10 +6,10 @@ export const tools = {
 			type: 'http',
 			url: '/api/mcp-tools/user-input-request'
 		},
-		tool_schema: {
+		toolSchema: {
 			name: 'request-question',
 			description: 'Request a question from the user. Hangs until input is received.',
-			input_schema: {
+			inputSchema: {
 				type: 'object',
 				properties: {
 					//@ts-ignore // FIXME: upstream typing
@@ -23,11 +23,11 @@ export const tools = {
 			type: 'http',
 			url: '/api/mcp-tools/user-input-respond'
 		},
-		tool_schema: {
+		toolSchema: {
 			name: 'answer-question',
 			description:
 				'Answer the last question you requested from the user. You can only respond once, and will have to request more input later.',
-			input_schema: {
+			inputSchema: {
 				type: 'object',
 				properties: {
 					//@ts-ignore // FIXME: upstream typing

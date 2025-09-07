@@ -90,10 +90,10 @@
 							<p class="whitespace-pre-wrap">{part.text}</p>
 						{/if}
 					{/each}
-				{:else if message.tool_calls}
+				{:else if message.toolCalls}
 					<span class="text-foreground font-bold">Agent invoked tools</span>
 					<ul>
-						{#each message.tool_calls as toolCall}
+						{#each message.toolCalls as toolCall}
 							<li>
 								<span class="font-bold">{toolCall.function.name}</span>
 								<CodeBlock text={toolCall.function.arguments} class="max-w-max" language="json" />

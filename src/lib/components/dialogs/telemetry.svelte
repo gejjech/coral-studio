@@ -25,8 +25,8 @@
 		user: true,
 		assistant: true,
 		tool: true,
-		generic_assistant: true,
-		generic_user: true,
+		genericAssistant: true,
+		genericUser: true,
 		developer: true
 	});
 
@@ -75,7 +75,7 @@
 				<Tabs.Root value="messages" class="flex h-full flex-col gap-4">
 					<Dialog.Header class="flex flex-col gap-4">
 						<Dialog.Title class="h-fit  font-[400]">Full Telemetry Data</Dialog.Title>
-						<span class="text-muted-foreground text-sm">{data.model_description} - {threadId}</span>
+						<span class="text-muted-foreground text-sm">{data.modelDescription} - {threadId}</span>
 						<Tabs.List class="h-11 border p-0.5">
 							<Tabs.Trigger value="messages"><Chat /> Message Events</Tabs.Trigger>
 							<Tabs.Trigger value="details"><TextIndent /> Thread Details</Tabs.Trigger>
@@ -120,19 +120,18 @@
 											>
 											<DropdownMenu.CheckboxItem
 												closeOnSelect={false}
-												bind:checked={filter.generic_assistant}
+												bind:checked={filter.genericAssistant}
 												>Generic Assistant <DropdownMenu.Shortcut
-													>{data.messages.data.filter((item) => item.role === 'generic_assistant')
+													>{data.messages.data.filter((item) => item.role === 'genericAssistant')
 														.length}
 												</DropdownMenu.Shortcut></DropdownMenu.CheckboxItem
 											>
 
 											<DropdownMenu.CheckboxItem
 												closeOnSelect={false}
-												bind:checked={filter.generic_user}
+												bind:checked={filter.genericUser}
 												>Generic User <DropdownMenu.Shortcut
-													>{data.messages.data.filter((item) => item.role === 'generic_user')
-														.length}
+													>{data.messages.data.filter((item) => item.role === 'genericUser').length}
 												</DropdownMenu.Shortcut></DropdownMenu.CheckboxItem
 											>
 											<DropdownMenu.CheckboxItem
@@ -163,7 +162,7 @@
 								</Card.Header>
 								<Card.Content>
 									<CodeBlock
-										text={JSON.stringify(data.additional_params, null, 2)}
+										text={JSON.stringify(data.additionalParams, null, 2)}
 										class="overflow-scroll whitespace-pre-wrap"
 										language="json"
 									/>
@@ -181,7 +180,7 @@
 											</Card.Header>
 											<Card.Content>
 												<CodeBlock
-													text={JSON.stringify(data.model_description, null, 2)}
+													text={JSON.stringify(data.modelDescription, null, 2)}
 													class="overflow-scroll whitespace-pre-wrap"
 													language="json"
 												/>
@@ -195,7 +194,7 @@
 											</Card.Header>
 											<Card.Content>
 												<CodeBlock
-													text={JSON.stringify(data.max_tokens, null, 2)}
+													text={JSON.stringify(data.maxTokens, null, 2)}
 													class="overflow-scroll whitespace-pre-wrap"
 													language="json"
 												/>

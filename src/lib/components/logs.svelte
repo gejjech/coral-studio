@@ -7,7 +7,7 @@
 	import Sonner from './ui/sonner/sonner.svelte';
 
 	let { logs, class: className }: { logs: AgentLogs['logs']; class?: string } = $props();
-	const ts_fmt = (d: Date) =>
+	const tsFmt = (d: Date) =>
 		`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
 
 	// let ref: SvelteVirtualList;
@@ -41,8 +41,7 @@
 					log.kind === 'STDERR' ? 'text-destructive' : ''
 				)}
 			>
-				<span class="opacity-40">{timestamp ? ts_fmt(timestamp) : ''}</span><span
-					>{log.message}</span
+				<span class="opacity-40">{timestamp ? tsFmt(timestamp) : ''}</span><span>{log.message}</span
 				>
 			</li>
 		{/each}
