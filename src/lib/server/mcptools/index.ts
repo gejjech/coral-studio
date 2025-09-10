@@ -72,7 +72,7 @@ export const handle: Handle = async ({ event }) => {
 		.split('/')
 		.slice(3)
 		.reduce((acc, part) => (part.length > 0 ? [...acc, part] : acc), [] as string[]);
-	console.log({ tool, sessionId, agentId, extra });
+	console.log('svelte side handle', { tool, sessionId, agentId, extra });
 
 	const body = await event.request.json().catch((err) => null);
 
@@ -81,7 +81,8 @@ export const handle: Handle = async ({ event }) => {
 
 	if (!(tool in toolCalls)) return new Response(`Tool '${tool}' not found.`, { status: 404 });
 	const getSock = () => {
-		return io(`${event.url.origin}/socket.io/${tool}`, {
+		const uri = `${event.url.origin.replace('https', 'http')}/socket.io/${tool}`;
+		return io(uri, {
 			auth: { secret: (globalThis as any).socketSecret, tool }
 		});
 	};
