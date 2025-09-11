@@ -1,5 +1,5 @@
 import type { PublicRegistryAgent } from '$lib/threads';
-import { registry, z } from 'zod/v4';
+import { z } from 'zod/v4';
 
 const formSchema = z.object({
 	applicationId: z.string().nonempty(),
@@ -11,7 +11,7 @@ const formSchema = z.object({
 			provider: z.discriminatedUnion('type', [
 				z.object({
 					type: z.literal('local'),
-					runtime: z.union([z.literal('executable'), z.literal('docker')])
+					runtime: z.union([z.literal('executable'), z.literal('docker'), z.literal('FUNCTION')])
 				})
 			]),
 			systemPrompt: z.string().optional(),

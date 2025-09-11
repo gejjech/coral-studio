@@ -1,8 +1,6 @@
 <script lang="ts">
 	import * as Select from '$lib/components/ui/select';
 	import * as Dialog from '$lib/components/ui/dialog';
-	import * as Collapsible from '$lib/components/ui/collapsible';
-	import * as Tooltip from '$lib/components/ui/tooltip';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import { Toggle } from '$lib/components/ui/toggle';
 	import * as Form from '$lib/components/ui/form';
@@ -11,11 +9,9 @@
 	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import ScrollArea from '$lib/components/ui/scroll-area/scroll-area.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
-	import { Label } from '$lib/components/ui/label';
 	import { Button, buttonVariants } from '$lib/components/ui/button';
 
 	// TODO: change these icons
-	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import { ClipboardCopy, PlusIcon, TrashIcon } from '@lucide/svelte';
 
 	import { cn } from '$lib/utils';
@@ -37,21 +33,16 @@
 	import ModalCollapsible from '$lib/components/modal-collapsible.svelte';
 
 	import { toast } from 'svelte-sonner';
-	import { watch } from 'runed';
-	import { SvelteSet } from 'svelte/reactivity';
 	import { Textarea } from '$lib/components/ui/textarea';
 
 	import { superForm, defaults } from 'sveltekit-superforms';
 	import { zod4 } from 'sveltekit-superforms/adapters';
 	import * as schemas from './schemas';
-	import Card from '$lib/components/ui/card/card.svelte';
 	import type { HTMLInputTypeAttribute } from 'svelte/elements';
 	import createClient from 'openapi-fetch';
 	import type { paths, components } from '../../../../generated/api';
-	import SidebarMenuAction from '$lib/components/ui/sidebar/sidebar-menu-action.svelte';
-	import FormField from '$lib/components/ui/form/form-field.svelte';
 
-	type CreateSessionRequest = components['schemas']['CreateSessionRequest'];
+	type CreateSessionRequest = components['schemas']['SessionRequest'];
 
 	/// {a?: number | undefined} -> {a: number | undefined}
 	type Complete<T> = {
@@ -96,7 +87,10 @@
 					if (res.error) {
 						// todo @alan there should probably be an api class where we can generic-ify the handling of this error
 						// with a proper type implementation too..!
-						let error: { message: string; stackTrace: string[] } = res.error;
+						let error = {
+							message: res.error.message ?? 'Unknown error',
+							stackTrace: res.error.stackTrace
+						};
 						console.error(error.stackTrace);
 
 						toast.error(`Failed to create session: ${error.message}`);
@@ -126,18 +120,18 @@
 	const importFromJson = (json: string) => {
 		const data: CreateSessionRequest = JSON.parse(json);
 		$formData = {
-			links: data.agentGraph?.links ?? [],
+			links: data.agentGraphRequest?.groups ?? [],
 			applicationId: data.applicationId,
 			privacyKey: data.privacyKey,
-			agents: Object.entries(data.agentGraph?.agents ?? {})
+			agents: Object.entries(data.agentGraphRequest?.agents ?? {})
 				.filter(([_, agent]) => agent.provider.type === 'local')
 				.map(([name, agent]) => ({
 					name,
-					agentName: agent.agentName,
+					agentName: agent.name,
 					provider: agent.provider as any, // FIXME: annoying hack since ts doesn't know we filtered for local providers
 					blocking: agent.blocking ?? true,
 					options: agent.options,
-					customTools: new Set(agent.tools)
+					customTools: new Set(agent.customToolAccess)
 				}))
 		};
 		selectedAgent = $formData.agents.length > 0 ? 0 : null;
@@ -150,22 +144,29 @@
 		return {
 			privacyKey: $formData.privacyKey,
 			applicationId: $formData.applicationId,
-			agentGraph: {
+			agentGraphRequest: {
 				agents: Object.fromEntries(
 					$formData.agents.map((agent) => [
 						agent.name,
 						{
-							provider: agent.provider,
-							blocking: agent.blocking,
+							id: {
+								name: agent.agentName,
+								version: agents[agent.agentName]?.version ?? '1.0.0'
+							},
+							name: agent.name,
+							description: agents[agent.agentName]?.description,
 							options: agent.options as any, // FIXME: !!!
 							systemPrompt: agent.systemPrompt,
-							agentName: agent.agentName,
-							tools: Array.from(agent.customTools)
-						} satisfies Complete<NonNullable<CreateSessionRequest['agentGraph']>['agents'][string]>
+							blocking: agent.blocking,
+							customToolAccess: Array.from(agent.customTools),
+							provider: agent.provider
+						}
 					])
 				),
-				tools: Object.fromEntries(Array.from(usedTools).map((tool) => [tool, tools[tool]])) as any, // FIXME: !!!
-				links: $formData.links
+				customTools: Object.fromEntries(
+					Array.from(usedTools).map((tool) => [tool, tools[tool]])
+				) as any, // FIXME: !!!
+				groups: $formData.links
 			}
 		} satisfies CreateSessionRequest;
 	});
