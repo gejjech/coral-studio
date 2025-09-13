@@ -120,22 +120,6 @@
 											>
 											<DropdownMenu.CheckboxItem
 												closeOnSelect={false}
-												bind:checked={filter.genericAssistant}
-												>Generic Assistant <DropdownMenu.Shortcut
-													>{data.messages.data.filter((item) => item.role === 'genericAssistant')
-														.length}
-												</DropdownMenu.Shortcut></DropdownMenu.CheckboxItem
-											>
-
-											<DropdownMenu.CheckboxItem
-												closeOnSelect={false}
-												bind:checked={filter.genericUser}
-												>Generic User <DropdownMenu.Shortcut
-													>{data.messages.data.filter((item) => item.role === 'genericUser').length}
-												</DropdownMenu.Shortcut></DropdownMenu.CheckboxItem
-											>
-											<DropdownMenu.CheckboxItem
-												closeOnSelect={false}
 												bind:checked={filter.developer}
 												>Developer <DropdownMenu.Shortcut
 													>{data.messages.data.filter((item) => item.role === 'developer').length}

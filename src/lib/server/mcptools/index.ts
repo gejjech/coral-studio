@@ -1,9 +1,8 @@
 import type { tools } from '$lib/mcptools';
-import type { CustomTool } from '$lib/threads';
 import type { Handle, RequestEvent } from '@sveltejs/kit';
 import { io, Socket } from 'socket.io-client';
 
-let questions: {
+const questions: {
 	[sessionAgentId: string]: {
 		id: string;
 		sessionId: string;
@@ -40,11 +39,15 @@ const toolCalls: {
 			agentAnswer: undefined
 		};
 
-		questions[`${sessionId}-${agentId}`] = q;
+		const key = `${sessionId}-${agentId}`;
+		questions[key] = q;
 		sock.emit('agentRequest', q);
+
 		return new Promise((res) => {
 			sock.on('userResponse', ({ id: resId, value }) => {
-				questions[`${sessionId}-${agentId}`].userQuestion = value;
+				const item = questions[key];
+				if (!item) return; // or throw
+				item.userQuestion = value;
 				console.log('userResponse', { id, resId, value });
 				if (resId !== id) return;
 				res(new Response(value));

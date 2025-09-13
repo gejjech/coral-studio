@@ -52,7 +52,7 @@
 			const res = await client.GET('/api/v1/agents');
 			await tick();
 			testSuccess = res.response.status === 200;
-			if (res.status === 200) {
+			if (res.response.status === 200) {
 				testSuccess = null;
 				servers.current.push(host);
 				selected.current = host;

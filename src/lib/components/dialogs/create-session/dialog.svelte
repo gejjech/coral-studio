@@ -5,13 +5,10 @@
 	import { Toggle } from '$lib/components/ui/toggle';
 	import * as Form from '$lib/components/ui/form';
 	import { Checkbox } from '$lib/components/ui/checkbox';
-
 	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import ScrollArea from '$lib/components/ui/scroll-area/scroll-area.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
-	import { Button, buttonVariants } from '$lib/components/ui/button';
-
-	// TODO: change these icons
+	import { Button } from '$lib/components/ui/button';
 	import { ClipboardCopy, PlusIcon, TrashIcon } from '@lucide/svelte';
 
 	import { cn } from '$lib/utils';
@@ -25,7 +22,6 @@
 	import { tools } from '$lib/mcptools';
 
 	import ClipboardImportDialog from '../clipboard-import-dialog.svelte';
-
 	import Combobox from '$lib/components/combobox.svelte';
 	import CodeBlock from '$lib/components/code-block.svelte';
 	import TooltipLabel from '$lib/components/tooltip-label.svelte';
@@ -44,12 +40,12 @@
 
 	type CreateSessionRequest = components['schemas']['SessionRequest'];
 
-	/// {a?: number | undefined} -> {a: number | undefined}
 	type Complete<T> = {
 		[P in keyof Required<T>]: Pick<T, P> extends Required<Pick<T, P>> ? T[P] : T[P] | undefined;
 	};
 
 	let ctx = sessionCtx.get();
+	console.debug('[SessionForm] ctx', ctx); // DEBUG
 
 	const inputTypes: {
 		[K in PublicRegistryAgent['options'][string]['type']]: HTMLInputTypeAttribute;
@@ -58,19 +54,24 @@
 		number: 'text',
 		secret: 'password'
 	};
+	console.debug('[SessionForm] inputTypes', inputTypes); // DEBUG
 
 	let {
 		open = $bindable(false),
 		agents
 	}: { open: boolean; agents: { [id: string]: PublicRegistryAgent } } = $props();
+	console.debug('[SessionForm] props.agents', JSON.stringify(agents, null, 2)); // DEBUG
 
 	let formSchema = $derived(schemas.makeFormSchema(agents));
+	$inspect('[SessionForm] formSchema', formSchema); // DEBUG
+
 	let form = $derived(
 		superForm(defaults(zod4(formSchema)), {
 			SPA: true,
 			dataType: 'json',
 			validators: zod4(formSchema),
 			async onUpdate({ form: f }) {
+				console.debug('[onUpdate] form valid?', f.valid, f); // DEBUG
 				if (!f.valid) {
 					toast.error('Please fix all errors in the form.');
 					return;
@@ -80,23 +81,23 @@
 					const client = createClient<paths>({
 						baseUrl: `${location.protocol}//${ctx.connection.host}`
 					});
+					console.debug('[onUpdate] POSTing asJson', JSON.stringify(asJson, null, 2)); // DEBUG
 					const res = await client.POST('/api/v1/sessions', {
 						body: asJson
 					});
+					console.debug('[onUpdate] POST result', res); // DEBUG
 
 					if (res.error) {
-						// todo @alan there should probably be an api class where we can generic-ify the handling of this error
-						// with a proper type implementation too..!
+						console.error('[onUpdate] res.error', res.error); // DEBUG
 						let error = {
 							message: res.error.message ?? 'Unknown error',
 							stackTrace: res.error.stackTrace
 						};
-						console.error(error.stackTrace);
-
 						toast.error(`Failed to create session: ${error.message}`);
 						return;
 					}
 					if (res.data) {
+						console.debug('[onUpdate] session created', res.data); // DEBUG
 						if (!ctx.sessions) ctx.sessions = [];
 						ctx.sessions.push(res.data.sessionId);
 						ctx.session = new Session({
@@ -108,7 +109,7 @@
 						throw new Error('no data received');
 					}
 				} catch (e) {
-					console.log(e);
+					console.error('[onUpdate] exception', e); // DEBUG
 					toast.error(`Failed to create session: ${e}`);
 				}
 			}
@@ -116,62 +117,70 @@
 	);
 
 	let { form: formData, errors, enhance } = $derived(form);
+	console.debug('[SessionForm] formData', $formData); // DEBUG
 
 	const importFromJson = (json: string) => {
+		console.debug('[importFromJson] raw json', json); // DEBUG
 		const data: CreateSessionRequest = JSON.parse(json);
+		console.debug('[importFromJson] parsed', data); // DEBUG
 		$formData = {
 			links: data.agentGraphRequest?.groups ?? [],
 			applicationId: data.applicationId,
 			privacyKey: data.privacyKey,
 			agents: Object.entries(data.agentGraphRequest?.agents ?? {})
 				.filter(([_, agent]) => agent.provider.type === 'local')
-				.map(([name, agent]) => ({
-					name,
-					agentName: agent.name,
-					provider: agent.provider as any, // FIXME: annoying hack since ts doesn't know we filtered for local providers
-					blocking: agent.blocking ?? true,
-					options: agent.options,
-					customTools: new Set(agent.customToolAccess)
-				}))
+				.map(([name, agent]) => {
+					console.debug('[importFromJson] adding agent', name, agent); // DEBUG
+					return {
+						name: agent.name,
+						provider: agent.provider as any,
+						blocking: agent.blocking ?? true,
+						options: agent.options,
+						customTools: new Set(agent.customToolAccess)
+					};
+				})
 		};
+		console.debug('[importFromJson] $formData', $formData); // DEBUG
 		selectedAgent = $formData.agents.length > 0 ? 0 : null;
 	};
 
 	let usedTools = $derived(
 		new Set($formData.agents.flatMap((agent) => Array.from(agent.customTools)))
 	) as Set<keyof typeof tools>;
+	$inspect('[SessionForm] usedTools', usedTools); // DEBUG
+
 	let asJson: CreateSessionRequest = $derived.by(() => {
-		return {
+		const result: CreateSessionRequest = {
 			privacyKey: $formData.privacyKey,
 			applicationId: $formData.applicationId,
 			agentGraphRequest: {
-				agents: Object.fromEntries(
-					$formData.agents.map((agent) => [
-						agent.name,
-						{
-							id: {
-								name: agent.agentName,
-								version: agents[agent.agentName]?.version ?? '1.0.0'
-							},
+				agents: $formData.agents.map((agent) => {
+					console.debug('[asJson] building agent entry', agent); // DEBUG
+					return {
+						id: {
 							name: agent.name,
-							description: agents[agent.agentName]?.description,
-							options: agent.options as any, // FIXME: !!!
-							systemPrompt: agent.systemPrompt,
-							blocking: agent.blocking,
-							customToolAccess: Array.from(agent.customTools),
-							provider: agent.provider
-						}
-					])
-				),
+							version: agents[agent.name]?.id.version ?? '1.0.0'
+						},
+						name: agent.name,
+						options: agent.options as any,
+						systemPrompt: agent.systemPrompt,
+						blocking: agent.blocking,
+						customToolAccess: Array.from(agent.customTools),
+						provider: agent.provider
+					};
+				}),
 				customTools: Object.fromEntries(
 					Array.from(usedTools).map((tool) => [tool, tools[tool]])
-				) as any, // FIXME: !!!
+				) as any,
 				groups: $formData.links
 			}
-		} satisfies CreateSessionRequest;
+		};
+		console.debug('[asJson] result', JSON.stringify(result, null, 2)); // DEBUG
+		return result;
 	});
 
 	let selectedAgent: number | null = $state(null);
+	$inspect('[SessionForm] selectedAgent', selectedAgent); // DEBUG
 </script>
 
 {#if ctx.connection}
@@ -255,11 +264,8 @@
 										options={Object.keys(agents)}
 										searchPlaceholder="Search agents..."
 										onValueChange={(value) => {
-											const count = $formData.agents.filter(
-												(agent) => agent.agentName === value
-											).length;
+											const count = $formData.agents.filter((agent) => agent.name === value).length;
 											$formData.agents.push({
-												agentName: value,
 												provider: {
 													type: 'local',
 													runtime: agents[value]?.runtimes?.at(-1) ?? 'executable'
@@ -286,7 +292,7 @@
 							</ScrollArea>
 							{#if selectedAgent !== null && $formData.agents.length > selectedAgent}
 								{@const agent = $formData.agents[selectedAgent]!}
-								{@const availableOptions = agent && agents[agent.agentName]?.options}
+								{@const availableOptions = agent && agents[agent.name]?.options}
 								<Tabs.Root value="options" class="min-h-0">
 									<Tabs.List class="w-full">
 										<Tabs.Trigger value="options">Options</Tabs.Trigger>
@@ -316,7 +322,7 @@
 												</Form.ElementField>
 												<Form.ElementField
 													{form}
-													name="agents[{selectedAgent}].agentName"
+													name="agents[{selectedAgent}].name"
 													class="flex items-center gap-2"
 												>
 													<Form.Control>
@@ -331,7 +337,7 @@
 																align="start"
 																options={Object.keys(agents)}
 																searchPlaceholder="Search agents..."
-																bind:value={$formData.agents[selectedAgent!]!.agentName}
+																bind:value={$formData.agents[selectedAgent].name}
 																onValueChange={() => {
 																	for (const name in $formData.agents[selectedAgent!]!.options) {
 																		if (!(name in availableOptions)) {
@@ -360,7 +366,7 @@
 																class="w-auto grow pr-[2px]"
 																side="right"
 																align="start"
-																options={agents[agent.agentName]?.runtimes ?? []}
+																options={agents[agent.name]?.runtimes ?? []}
 																searchPlaceholder="Search agents..."
 																bind:value={$formData.agents[selectedAgent!]!.provider.runtime}
 															/>

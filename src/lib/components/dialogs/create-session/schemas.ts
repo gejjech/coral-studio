@@ -7,7 +7,6 @@ const formSchema = z.object({
 	agents: z.array(
 		z.object({
 			name: z.string().nonempty(),
-			agentName: z.string().nonempty(),
 			provider: z.discriminatedUnion('type', [
 				z.object({
 					type: z.literal('local'),
@@ -33,12 +32,12 @@ const formSchema = z.object({
 export const makeFormSchema = (registryAgents: { [agent: string]: PublicRegistryAgent }) =>
 	formSchema.superRefine((data, ctx) => {
 		data.agents.forEach((agent, i) => {
-			const regAgent = registryAgents[agent.agentName];
+			const regAgent = registryAgents[agent.name];
 			if (!regAgent) {
 				ctx.addIssue({
 					code: 'custom',
 					path: ['agent', i, 'agentName'],
-					message: `Agent name ${agent.agentName} not found in registry.`
+					message: `Agent name ${agent.name} not found in registry.`
 				});
 				return;
 			}

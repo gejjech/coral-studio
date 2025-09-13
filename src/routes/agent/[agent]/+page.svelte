@@ -19,7 +19,7 @@
 	let threads = $derived(conn?.threads ?? {});
 	let agents = $derived(conn?.agents ?? {});
 
-	let agentName = $derived(page.params['agent']);
+	let agentName = $derived(page.params['agent'] ?? '');
 	let agent = $derived(agents[agentName]);
 
 	let memberThreads = $derived(
@@ -27,7 +27,7 @@
 	);
 
 	let logs = $derived(logCtx.logs[agentName]);
-	const tsFmt = (d: Date) =>
+	const ts_fmt = (d: Date) =>
 		`${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
 </script>
 
@@ -41,7 +41,8 @@
 			</Breadcrumb.Item>
 			<Breadcrumb.Separator class="hidden md:block" />
 			<Breadcrumb.Item>
-				<Breadcrumb.Page>{page.params['agent'] ?? ''} {agent?.agentType ?? ''}</Breadcrumb.Page>
+				<Breadcrumb.Page>{page.params['agent'] ?? ''}</Breadcrumb.Page> // agent?.agentType is gone,
+				not sure what to replace it with
 			</Breadcrumb.Item>
 		</Breadcrumb.List>
 	</Breadcrumb.Root>
@@ -55,8 +56,8 @@
 			</Tabs.List>
 			<Tabs.Content value="main">
 				<h1 class="text-3xl font-bold">{agentName}</h1>
-				<p>{agent.state}</p>
-				<!-- <p>{agent.description}</p> -->
+				<!-- <p>{agent.state}</p> -->
+				<!-- <p>{agent.description}</p> both of these no longer exist it seems, maybe inside options? or is it the sessionstate thing-->
 				<Accordion.Root type="single" class="w-full sm:max-w-[70%]" value="threads">
 					<Accordion.Item value="threads">
 						<Accordion.Trigger>Threads</Accordion.Trigger>

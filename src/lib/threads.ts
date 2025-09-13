@@ -12,10 +12,10 @@ export type AgentOption = {
 	value: string | undefined;
 } & ({ type: 'string'; default: string | null } | { type: 'number'; default: number | null });
 
-export type Agent = components['schemas']['Agent'];
+export type Agent = components['schemas']['SessionAgent'];
 export type PublicRegistryAgent = components['schemas']['PublicRegistryAgent'];
 
-export type GraphAgentRequest = components['schemas']['AgentGraphRequest']['agents'][string];
+export type GraphAgentRequest = components['schemas']['AgentGraphRequest']['agents'];
 
 export type ToolTransport = {
 	type: 'http';

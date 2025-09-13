@@ -51,12 +51,14 @@ export class UserInput {
 		});
 		this.sock.on('agentAnswer', (req) => {
 			console.log('agentAnswer', req);
-			this.requests[req.id].agentAnswer = req.answer;
+			this.requests[req.id]!.agentAnswer = req.answer; // is using non null assertion safe here? or will this go wrong
 		});
 	}
 
 	respond(id: string, value: string) {
-		this.requests[id].userQuestion = value;
+		const req = this.requests[id];
+		if (!req) return;
+		req.userQuestion = value;
 		this.sock.emit('userResponse', { id, value });
 	}
 }

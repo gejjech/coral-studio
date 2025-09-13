@@ -1,10 +1,10 @@
 export function hexToRgb(hex: string) {
-	var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+	const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 	return result
 		? {
-				r: parseInt(result[1], 16),
-				g: parseInt(result[2], 16),
-				b: parseInt(result[3], 16)
+				r: parseInt(result[1] ?? 'red', 16),
+				g: parseInt(result[2] ?? 'green', 16),
+				b: parseInt(result[3] ?? 'blue', 16)
 			}
 		: null;
 }
@@ -15,7 +15,7 @@ export const stringToColor = (string: string) => {
 	}
 	let color = '#';
 	for (let i = 0; i < 3; i++) {
-		let value = (hash >> (i * 8)) & 0xff;
+		const value = (hash >> (i * 8)) & 0xff;
 		color += ('00' + value.toString(16)).substr(-2);
 	}
 	return color;

@@ -54,7 +54,10 @@
 					placeholder="Enter your reply."
 					onkeydown={(e) => {
 						if (e.key != 'Enter') return;
-						ctx.userInput.respond(request.id, userQuestions[request.id]);
+						const value = userQuestions[request.id];
+						if (value === undefined) return;
+
+						ctx.userInput.respond(request.id, value);
 					}}
 				/>
 				<p>{request.agentAnswer}</p>

@@ -59,16 +59,16 @@ export class Session {
 			let data = null;
 			try {
 				data = JSON.parse(ev.data) as components['schemas']['SocketEvent'];
-			} catch (e) {
+			} catch {
 				toast.warning(`ws: '${ev.data}'`);
 				return;
 			}
 
 			switch (data.type) {
-				case 'debugAgentRegistered':
+				case 'debug_agent_registered':
 					this.agentId = data.id;
 					break;
-				case 'threadList':
+				case 'thread_list':
 					for (const thread of data.threads) {
 						this.messages[thread.id] = thread.messages ?? [];
 						this.threads[thread.id] = {
@@ -78,17 +78,17 @@ export class Session {
 						};
 					}
 					break;
-				case 'agentList':
-					for (const agent of data.agents) {
+				case 'agent_list':
+					for (const agent of data.sessionAgents) {
 						this.agents[agent.id] = agent;
 					}
 					break;
 				case 'session':
 					switch (data.event.type) {
-						case 'agentStateUpdated':
+						case 'agent_state_updated':
 							this.agents[data.event.agentId]!.state = data.event.state;
 							break;
-						case 'threadCreated':
+						case 'thread_created':
 							console.log('new thread');
 							this.threads[data.event.id] = {
 								id: data.event.id,
@@ -102,7 +102,7 @@ export class Session {
 							};
 							this.messages[data.event.id] = [];
 							break;
-						case 'messageSent':
+						case 'message_sent':
 							if (data.event.threadId in this.messages) {
 								console.log('message setn');
 								this.messages[data.event.threadId]!.push(data.event.message);
