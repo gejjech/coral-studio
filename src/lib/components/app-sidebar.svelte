@@ -5,8 +5,12 @@
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import * as Tooltip from '$lib/components/ui/tooltip';
-
+	import * as Card from '$lib/components/ui/card/index.js';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import { Textarea } from '$lib/components/ui/textarea/index.js';
+	import { toast } from 'svelte-sonner';
 	import { Button } from '$lib/components/ui/button';
+	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 
 	import ChevronDown from 'phosphor-icons-svelte/IconCaretDownRegular.svelte';
 	import MoonIcon from 'phosphor-icons-svelte/IconMoonRegular.svelte';
@@ -34,6 +38,12 @@
 	import createClient from 'openapi-fetch';
 	import type { paths, components } from '../../generated/api';
 	import { Session } from '$lib/session.svelte';
+	import { Send } from '@lucide/svelte';
+
+	import { supabase } from '$lib/supabaseClient';
+
+	let content = $state('');
+	let user_email = $state('');
 
 	let sessCtx = sessionCtx.get();
 	let tools = socketCtx.get();
@@ -60,10 +70,14 @@
 			connecting = true;
 			error = null;
 			sessCtx.registry = null;
-
 			const agents = (await client.GET('/api/v1/agents')).data!;
 
-			sessCtx.registry = Object.fromEntries(agents.map((agent) => [agent.id, agent]));
+			sessCtx.registry = Object.fromEntries(
+				agents.map((agent) => [`${agent.id.name}:${agent.id.version}`, agent])
+			);
+			console.log(agents);
+			console.log(sessCtx.registry);
+
 			sessCtx.sessions = (await client.GET('/api/v1/sessions')).data!;
 
 			connecting = false;
@@ -76,9 +90,24 @@
 
 	let serverSwitcher = $state(null) as unknown as HTMLButtonElement;
 	let sessionSwitcher = $state(null) as unknown as HTMLButtonElement;
+
+	let feedbackVisible = $state(false);
+
+	async function handleSubmit(event: { preventDefault: () => void }) {
+		event.preventDefault();
+
+		const { data, error } = await supabase.from('feedback').insert([{ content, user_email }]);
+
+		if (error) {
+			toast.error('Error submitting feedback. Please try again later. ' + error.message);
+		} else {
+			toast.success('Feedback submitted successfully. Thank you!');
+			content = '';
+		}
+	}
 </script>
 
-<CreateSession bind:open={createSessionOpen} agents={sessCtx.registry ?? {}} />
+<CreateSession bind:open={createSessionOpen} registry={sessCtx.registry ?? {}} />
 <Tour
 	open={tourOpen}
 	items={[
@@ -237,10 +266,57 @@
 				]}
 			/>
 		</Sidebar.Group>
+
+		<form
+			onsubmit={handleSubmit}
+			class="mt-auto {feedbackVisible
+				? 'opacity-100'
+				: 'opacity-0 select-none'} align-bottom transition-opacity duration-75"
+		>
+			<Card.Root>
+				<Card.Header>
+					<Card.Title>Submit feedback</Card.Title>
+				</Card.Header>
+				<Card.Content class="flex flex-col gap-2">
+					<p
+						class="text-muted-foreground text-xs {content.length > 5000 ? 'text-destructive' : ''}"
+					>
+						Max 5,000 characters, for more detailed feedback, or help, please visit our <a
+							href="https://discord.gg/fV7sTAQQkk"
+							target="_blank"
+							class="underline">Discord</a
+						>
+					</p>
+					<Textarea
+						placeholder="Type your message here."
+						class="h-46"
+						minlength={10}
+						maxlength={5000}
+						bind:value={content}
+					/>
+
+					<Input type="email" placeholder="email (optional)" bind:value={user_email} />
+				</Card.Content>
+				<Card.Footer class="flex justify-between gap-4">
+					<Button variant="outline"
+						><a href="https://discord.gg/fV7sTAQQkk" target="_blank">Visit our Discord</a></Button
+					>
+					<Button type="submit" disabled={content.length < 10 || content.length > 5000}>Send</Button
+					>
+				</Card.Footer>
+			</Card.Root>
+		</form>
 	</Sidebar.Content>
 	<Sidebar.Footer>
 		<Sidebar.Menu>
-			<Sidebar.MenuItem class="flex justify-end">
+			<Sidebar.MenuItem class="flex justify-end gap-4">
+				<Button
+					variant="outline"
+					onclick={() => {
+						feedbackVisible = !feedbackVisible;
+					}}>Feedback</Button
+				>
+
 				<Button onclick={toggleMode} variant="outline" size="icon">
 					<SunIcon
 						class="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
