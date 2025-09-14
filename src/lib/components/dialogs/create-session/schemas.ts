@@ -19,8 +19,6 @@ const formSchema = z.object({
 					})
 				)
 				.optional(),
-
-			agentName: z.string().nonempty(),
 			provider: z.discriminatedUnion('type', [
 				z.object({
 					type: z.literal('local'),
@@ -121,25 +119,25 @@ const formSchema = z.object({
 });
 export const makeFormSchema = (registryAgents: { [agent: string]: PublicRegistryAgent }) =>
 	formSchema.superRefine((data, ctx) => {
-		data.agents.forEach((agent, i) => {
-			const regAgent = registryAgents[agent.name];
+		data.agentGraphRequest.forEach((agentGraphRequest, i) => {
+			const regAgent = registryAgents[agentGraphRequest.name];
 			if (!regAgent) {
 				ctx.addIssue({
 					code: 'custom',
 					path: ['agent', i, 'agentName'],
-					message: `Agent name ${agent.name} not found in registry.`
+					message: `Agent name ${agentGraphRequest.name} not found in registry.`
 				});
 				return;
 			}
 
-			const provider = agent.provider;
+			const provider = agentGraphRequest.provider;
 			if ('runtime' in provider) {
 				const allowedRuntimes = Object.values(regAgent.runtimes) as string[];
 				if (!allowedRuntimes.includes(provider.runtime)) {
 					ctx.addIssue({
 						code: 'custom',
 						path: ['agentGraphRequest', i, 'provider', 'runtime'],
-						message: `Runtime ${provider.runtime} not available for agent ${agent.name}.`
+						message: `Runtime ${provider.runtime} not available for agent ${agentGraphRequest.name}.`
 					});
 				}
 			}
@@ -148,7 +146,7 @@ export const makeFormSchema = (registryAgents: { [agent: string]: PublicRegistry
 			for (const [optName, optSpec] of regOptions) {
 				if ('default' in optSpec && optSpec.default !== undefined) continue;
 
-				const val = agent.options?.[optName];
+				const val = agentGraphRequest.options?.[optName];
 				if (!val || (val.type === 'string' && val.value.length === 0)) {
 					ctx.addIssue({
 						code: 'custom',

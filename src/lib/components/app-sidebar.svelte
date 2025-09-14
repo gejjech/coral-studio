@@ -63,7 +63,7 @@
 
 			const agents = (await client.GET('/api/v1/agents')).data!;
 
-			sessCtx.registry = Object.fromEntries(agents.map((agent) => [agent.id, agent]));
+			sessCtx.registry = agents;
 			sessCtx.sessions = (await client.GET('/api/v1/sessions')).data!;
 
 			connecting = false;
@@ -78,7 +78,7 @@
 	let sessionSwitcher = $state(null) as unknown as HTMLButtonElement;
 </script>
 
-<CreateSession bind:open={createSessionOpen} agents={sessCtx.registry ?? {}} />
+<CreateSession bind:open={createSessionOpen} registry={sessCtx.registry ?? []} />
 <Tour
 	open={tourOpen}
 	items={[

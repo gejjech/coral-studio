@@ -41,8 +41,7 @@
 			</Breadcrumb.Item>
 			<Breadcrumb.Separator class="hidden md:block" />
 			<Breadcrumb.Item>
-				<Breadcrumb.Page>{page.params['agent'] ?? ''}</Breadcrumb.Page> // agent?.agentType is gone,
-				not sure what to replace it with
+				<Breadcrumb.Page>{page.params['agent'] ?? ''}</Breadcrumb.Page>
 			</Breadcrumb.Item>
 		</Breadcrumb.List>
 	</Breadcrumb.Root>

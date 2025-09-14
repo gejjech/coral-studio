@@ -1,6 +1,6 @@
 import { Context } from 'runed';
 import type { Session } from './session.svelte';
-import type { components } from '../generated/api';
+import type { components, operations } from '../generated/api';
 
 export type Message = components['schemas']['ResolvedMessage'];
 
@@ -14,6 +14,8 @@ export type AgentOption = {
 
 export type Agent = components['schemas']['SessionAgent'];
 export type PublicRegistryAgent = components['schemas']['PublicRegistryAgent'];
+export type Registry =
+	operations['getAvailableAgents']['responses']['200']['content']['application/json'];
 
 export type GraphAgentRequest = components['schemas']['AgentGraphRequest']['agents'];
 
@@ -26,7 +28,7 @@ export type CustomTool = components['schemas']['CustomTool'];
 
 export const sessionCtx = new Context<{
 	session: Session | null;
-	registry: { [id: string]: PublicRegistryAgent } | null;
+	registry: Registry | null;
 	sessions: string[] | null;
 	connection: { host: string; appId: string; privacyKey: string } | null;
 }>('sessionCtx');

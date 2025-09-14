@@ -8,13 +8,9 @@
 	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import ScrollArea from '$lib/components/ui/scroll-area/scroll-area.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
-<<<<<<< Updated upstream
-	import { Button } from '$lib/components/ui/button';
-=======
 	import { Button, buttonVariants } from '$lib/components/ui/button';
 
 	// TODO: change these icons
->>>>>>> Stashed changes
 	import { ClipboardCopy, PlusIcon, TrashIcon } from '@lucide/svelte';
 
 	import { cn } from '$lib/utils';
@@ -22,7 +18,8 @@
 		sessionCtx,
 		type CustomTool,
 		type GraphAgentRequest,
-		type PublicRegistryAgent
+		type PublicRegistryAgent,
+		type Registry
 	} from '$lib/threads';
 	import { Session } from '$lib/session.svelte';
 	import { tools } from '$lib/mcptools';
@@ -50,7 +47,6 @@
 	};
 
 	let ctx = sessionCtx.get();
-	console.debug('[SessionForm] ctx', ctx); // DEBUG
 
 	const inputTypes: {
 		[K in PublicRegistryAgent['options'][string]['type']]: HTMLInputTypeAttribute;
@@ -59,23 +55,17 @@
 		number: 'text',
 		secret: 'password'
 	};
-	console.debug('[SessionForm] inputTypes', inputTypes); // DEBUG
 
-	let {
-		open = $bindable(false),
-<<<<<<< Updated upstream
-		agents
-	}: { open: boolean; agents: { [id: string]: PublicRegistryAgent } } = $props();
-	console.debug('[SessionForm] props.agents', JSON.stringify(agents, null, 2)); // DEBUG
+	let { open = $bindable(false), registry: registryRaw }: { open: boolean; registry: Registry } =
+		$props();
 
-	let formSchema = $derived(schemas.makeFormSchema(agents));
-=======
-		registry
-	}: { open: boolean; registry: { [id: string]: PublicRegistryAgent } } = $props();
+	let registry = $derived(
+		Object.fromEntries(registryRaw?.map((a) => [`${a.id.name}${a.id.version}`, a]) ?? [])
+	);
+
+	$inspect(registry);
 
 	let formSchema = $derived(schemas.makeFormSchema(registry));
->>>>>>> Stashed changes
-	$inspect('[SessionForm] formSchema', formSchema); // DEBUG
 
 	let form = $derived(
 		superForm(defaults(zod4(formSchema)), {
@@ -83,7 +73,6 @@
 			dataType: 'json',
 			validators: zod4(formSchema),
 			async onUpdate({ form: f }) {
-				console.debug('[onUpdate] form valid?', f.valid, f); // DEBUG
 				if (!f.valid) {
 					toast.error('Please fix all errors in the form.');
 					return;
@@ -93,30 +82,23 @@
 					const client = createClient<paths>({
 						baseUrl: `${location.protocol}//${ctx.connection.host}`
 					});
-					console.debug('[onUpdate] POSTing asJson', JSON.stringify(asJson, null, 2)); // DEBUG
 					const res = await client.POST('/api/v1/sessions', {
 						// body: asJson
 					});
-					console.debug('[onUpdate] POST result', res); // DEBUG
 
 					if (res.error) {
 						// todo @alan there should probably be an api class where we can generic-ify the handling of this error
 						// with a proper type implementation too..!
-<<<<<<< Updated upstream
-						let error: { message: string; stackTrace: string[] } = res.error;
-=======
 						let error = {
 							message: res.error.message ?? 'Unknown error',
 							stackTrace: res.error.stackTrace
 						};
->>>>>>> Stashed changes
 						console.error(error.stackTrace);
 
 						toast.error(`Failed to create session: ${error.message}`);
 						return;
 					}
 					if (res.data) {
-						console.debug('[onUpdate] session created', res.data); // DEBUG
 						if (!ctx.sessions) ctx.sessions = [];
 						ctx.sessions.push(res.data.sessionId);
 						ctx.session = new Session({
@@ -128,7 +110,6 @@
 						throw new Error('no data received');
 					}
 				} catch (e) {
-					console.error('[onUpdate] exception', e); // DEBUG
 					toast.error(`Failed to create session: ${e}`);
 				}
 			}
@@ -136,71 +117,10 @@
 	);
 
 	let { form: formData, errors, enhance } = $derived(form);
-<<<<<<< Updated upstream
-
-	const importFromJson = (json: string) => {
-		console.debug('[importFromJson] raw json', json); // DEBUG
-		const data: CreateSessionRequest = JSON.parse(json);
-		console.debug('[importFromJson] parsed', data); // DEBUG
-		$formData = {
-			links: data.agentGraphRequest?.groups ?? [],
-			applicationId: data.applicationId,
-			privacyKey: data.privacyKey,
-			agents: Object.entries(data.agentGraphRequest?.agents ?? {})
-				.filter(([_, agent]) => agent.provider.type === 'local')
-				.map(([name, agent]) => {
-					console.debug('[importFromJson] adding agent', name, agent); // DEBUG
-					return {
-						name: agent.name,
-						provider: agent.provider as any,
-						blocking: agent.blocking ?? true,
-						options: agent.options,
-						customTools: new Set(agent.customToolAccess)
-					};
-				})
-		};
-		console.debug('[importFromJson] $formData', $formData); // DEBUG
-		selectedAgent = $formData.agents.length > 0 ? 0 : null;
-	};
-=======
->>>>>>> Stashed changes
 
 	let usedTools = $derived(
 		new Set($formData.agentGraphRequest.flatMap((agent) => Array.from(agent.customToolAccess)))
 	) as Set<keyof typeof tools>;
-<<<<<<< Updated upstream
-	let asJson: CreateSessionRequest = $derived.by(() => {
-		const result: CreateSessionRequest = {
-			privacyKey: $formData.privacyKey,
-			applicationId: $formData.applicationId,
-			agentGraphRequest: {
-				agents: $formData.agents.map((agent) => {
-					console.debug('[asJson] building agent entry', agent); // DEBUG
-					return {
-						id: {
-							name: agent.name,
-							version: agents[agent.name]?.id.version ?? '1.0.0'
-						},
-						name: agent.name,
-						options: agent.options as any,
-						systemPrompt: agent.systemPrompt,
-						blocking: agent.blocking,
-						customToolAccess: Array.from(agent.customTools),
-						provider: agent.provider
-					};
-				}),
-				customTools: Object.fromEntries(
-					Array.from(usedTools).map((tool) => [tool, tools[tool]])
-				) as any,
-				groups: $formData.links
-			}
-		};
-		console.debug('[asJson] result', JSON.stringify(result, null, 2)); // DEBUG
-		return result;
-	});
-
-	let selectedAgent: number | null = $state(null);
-=======
 
 	let selectedAgent: number | null = $state(null);
 
@@ -247,7 +167,6 @@
 	// 		}
 	// 	} satisfies CreateSessionRequest;
 	// });
->>>>>>> Stashed changes
 </script>
 
 {#if ctx.connection}
@@ -326,24 +245,17 @@
 									{:else}
 										<li class="grow"></li>
 									{/if}
+
 									<Combobox
 										side="right"
 										align="start"
 										options={Object.keys(registry)}
 										searchPlaceholder="Search agents..."
 										onValueChange={(value) => {
-<<<<<<< Updated upstream
-											const count = $formData.agents.filter(
-												(agent) => agent.agentName === value
-											).length;
-											$formData.agents.push({
-												agentName: value,
-=======
 											const count = $formData.agentGraphRequest.filter(
 												(agent) => agent.name === value
 											).length;
 											$formData.agentGraphRequest.push({
->>>>>>> Stashed changes
 												provider: {
 													type: 'local',
 													runtime: registry[value]?.runtimes?.at(-1) ?? 'executable'
@@ -372,15 +284,9 @@
 									</Combobox>
 								</ul>
 							</ScrollArea>
-<<<<<<< Updated upstream
-							{#if selectedAgent !== null && $formData.agents.length > selectedAgent}
-								{@const agent = $formData.agents[selectedAgent]!}
-								{@const availableOptions = agent && agents[agent.agentName]?.options}
-=======
 							{#if selectedAgent !== null && $formData.agentGraphRequest.length > selectedAgent}
 								{@const agent = $formData.agentGraphRequest[selectedAgent]!}
 								{@const availableOptions = agent && registry[agent.name]?.options}
->>>>>>> Stashed changes
 								<Tabs.Root value="options" class="min-h-0">
 									<Tabs.List class="w-full">
 										<Tabs.Trigger value="options">Options</Tabs.Trigger>
@@ -392,7 +298,7 @@
 											{#if availableOptions && selectedAgent !== null && $formData.agentGraphRequest.length > selectedAgent}
 												<Form.ElementField
 													{form}
-													name="agents.[{selectedAgent}].name"
+													name="agentGraphRequest[{selectedAgent}].name"
 													class="flex items-center gap-2"
 												>
 													<Form.Control>
@@ -410,7 +316,7 @@
 												</Form.ElementField>
 												<Form.ElementField
 													{form}
-													name="agents[{selectedAgent}].name"
+													name="agentGraphRequest[{selectedAgent}].name"
 													class="flex items-center gap-2"
 												>
 													<Form.Control>
@@ -425,11 +331,7 @@
 																align="start"
 																options={Object.keys(registry)}
 																searchPlaceholder="Search agents..."
-<<<<<<< Updated upstream
-																bind:value={$formData.agents[selectedAgent!]!.agentName}
-=======
-																bind:value={$formData.agentGraphRequest[selectedAgent].name}
->>>>>>> Stashed changes
+																bind:value={$formData.agentGraphRequest[selectedAgent!]!.name}
 																onValueChange={() => {
 																	for (const name in $formData.agentGraphRequest[selectedAgent!]!
 																		.options) {
@@ -442,12 +344,13 @@
 																	$formData.agentGraphRequest = $formData.agentGraphRequest;
 																}}
 															/>
+															<!-- hehehe :3 -->
 														{/snippet}
 													</Form.Control>
 												</Form.ElementField>
 												<Form.ElementField
 													{form}
-													name="agents[{selectedAgent}].provider.runtime"
+													name="agentGraphRequest[{selectedAgent}].provider.runtime"
 													class="flex items-center gap-2"
 												>
 													<Form.Control>
@@ -461,11 +364,7 @@
 																class="w-auto grow pr-[2px]"
 																side="right"
 																align="start"
-<<<<<<< Updated upstream
-																options={agents[agent.agentName]?.runtimes ?? []}
-=======
 																options={registry[agent.name]?.runtimes ?? []}
->>>>>>> Stashed changes
 																searchPlaceholder="Search agents..."
 																bind:value={
 																	$formData.agentGraphRequest[selectedAgent!]!.provider.runtime
@@ -478,7 +377,7 @@
 												{#each Object.entries(availableOptions) as [name, opt] (name)}
 													<Form.ElementField
 														{form}
-														name="agents[{selectedAgent}].options.{name}.value"
+														name="agentGraphRequest[{selectedAgent}].options.{name}.value"
 													>
 														<Form.Control>
 															{#snippet children({ props })}
@@ -513,7 +412,10 @@
 											{/if}
 										</Tabs.Content>
 										<Tabs.Content value="prompt">
-											<Form.ElementField {form} name="agents[{selectedAgent}].systemPrompt">
+											<Form.ElementField
+												{form}
+												name="agentGraphRequest[{selectedAgent}].systemPrompt"
+											>
 												<Form.Control>
 													{#snippet children({ props })}
 														<Form.Label class="text-muted-foreground leading-tight"
@@ -528,7 +430,10 @@
 											</Form.ElementField>
 										</Tabs.Content>
 										<Tabs.Content value="tools">
-											<Form.Fieldset {form} name="agents[{selectedAgent}].customToolsAccess">
+											<Form.Fieldset
+												{form}
+												name="agentGraphRequest[{selectedAgent}].customToolAccess"
+											>
 												<ul class="flex flex-col gap-2">
 													{#each Object.keys(tools) as tool (tool)}
 														<li class="flex gap-2">
