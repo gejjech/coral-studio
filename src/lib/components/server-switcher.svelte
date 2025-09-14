@@ -41,24 +41,27 @@
 	let testing = $state(false);
 
 	let host = $state('127.0.0.1:5555');
+	let hostSanitized = $derived(host.replace(/^https?:\/\//, ''));
 
 	const debouncedTest = useDebounce(async () => {
 		testSuccess = null;
 		testing = true;
 		try {
 			const client = createClient<paths>({
-				baseUrl: `${location.protocol}//${host}`
+				baseUrl: `${location.protocol}//${hostSanitized}`
 			});
 			const res = await client.GET('/api/v1/agents');
 			await tick();
 			testSuccess = res.response.status === 200;
-			if (res.response.status === 200) {
+			if (res.status === 200) {
 				testSuccess = null;
 				servers.current.push(host);
 				selected.current = host;
 				dialogOpen = false;
 				host = '';
 				toast.success('Server added successfully');
+			if (testSuccess) {
+				pushServerAndClose();
 			}
 		} catch {
 			await tick();
@@ -71,6 +74,15 @@
 		testSuccess = null;
 		testing = true;
 		debouncedTest();
+	};
+
+	const pushServerAndClose = () => {
+		servers.current.push(hostSanitized);
+		selected.current = hostSanitized;
+		dialogOpen = false;
+		testSuccess = null;
+		host = '';
+		toast.success('Server added to list.');
 	};
 
 	$effect(() => {
@@ -157,12 +169,7 @@
 				<p class="text-destructive text-sm" transition:fade>Connection failed, add anyway?</p>
 				<Button
 					onclick={() => {
-						testSuccess = null;
-						servers.current.push(host);
-						selected.current = host;
-						dialogOpen = false;
-						host = '';
-						toast.success('Server added successfully');
+						pushServerAndClose();
 					}}>Add</Button
 				>
 			{/if}
