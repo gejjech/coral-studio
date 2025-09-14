@@ -8,7 +8,13 @@
 	import Separator from '$lib/components/ui/separator/separator.svelte';
 	import ScrollArea from '$lib/components/ui/scroll-area/scroll-area.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
+<<<<<<< Updated upstream
 	import { Button } from '$lib/components/ui/button';
+=======
+	import { Button, buttonVariants } from '$lib/components/ui/button';
+
+	// TODO: change these icons
+>>>>>>> Stashed changes
 	import { ClipboardCopy, PlusIcon, TrashIcon } from '@lucide/svelte';
 
 	import { cn } from '$lib/utils';
@@ -23,7 +29,6 @@
 
 	import ClipboardImportDialog from '../clipboard-import-dialog.svelte';
 	import Combobox from '$lib/components/combobox.svelte';
-	import CodeBlock from '$lib/components/code-block.svelte';
 	import TooltipLabel from '$lib/components/tooltip-label.svelte';
 	import TwostepButton from '$lib/components/twostep-button.svelte';
 	import ModalCollapsible from '$lib/components/modal-collapsible.svelte';
@@ -58,11 +63,18 @@
 
 	let {
 		open = $bindable(false),
+<<<<<<< Updated upstream
 		agents
 	}: { open: boolean; agents: { [id: string]: PublicRegistryAgent } } = $props();
 	console.debug('[SessionForm] props.agents', JSON.stringify(agents, null, 2)); // DEBUG
 
 	let formSchema = $derived(schemas.makeFormSchema(agents));
+=======
+		registry
+	}: { open: boolean; registry: { [id: string]: PublicRegistryAgent } } = $props();
+
+	let formSchema = $derived(schemas.makeFormSchema(registry));
+>>>>>>> Stashed changes
 	$inspect('[SessionForm] formSchema', formSchema); // DEBUG
 
 	let form = $derived(
@@ -83,16 +95,23 @@
 					});
 					console.debug('[onUpdate] POSTing asJson', JSON.stringify(asJson, null, 2)); // DEBUG
 					const res = await client.POST('/api/v1/sessions', {
-						body: asJson
+						// body: asJson
 					});
 					console.debug('[onUpdate] POST result', res); // DEBUG
 
 					if (res.error) {
-						console.error('[onUpdate] res.error', res.error); // DEBUG
+						// todo @alan there should probably be an api class where we can generic-ify the handling of this error
+						// with a proper type implementation too..!
+<<<<<<< Updated upstream
+						let error: { message: string; stackTrace: string[] } = res.error;
+=======
 						let error = {
 							message: res.error.message ?? 'Unknown error',
 							stackTrace: res.error.stackTrace
 						};
+>>>>>>> Stashed changes
+						console.error(error.stackTrace);
+
 						toast.error(`Failed to create session: ${error.message}`);
 						return;
 					}
@@ -117,7 +136,7 @@
 	);
 
 	let { form: formData, errors, enhance } = $derived(form);
-	console.debug('[SessionForm] formData', $formData); // DEBUG
+<<<<<<< Updated upstream
 
 	const importFromJson = (json: string) => {
 		console.debug('[importFromJson] raw json', json); // DEBUG
@@ -143,12 +162,13 @@
 		console.debug('[importFromJson] $formData', $formData); // DEBUG
 		selectedAgent = $formData.agents.length > 0 ? 0 : null;
 	};
+=======
+>>>>>>> Stashed changes
 
 	let usedTools = $derived(
-		new Set($formData.agents.flatMap((agent) => Array.from(agent.customTools)))
+		new Set($formData.agentGraphRequest.flatMap((agent) => Array.from(agent.customToolAccess)))
 	) as Set<keyof typeof tools>;
-	$inspect('[SessionForm] usedTools', usedTools); // DEBUG
-
+<<<<<<< Updated upstream
 	let asJson: CreateSessionRequest = $derived.by(() => {
 		const result: CreateSessionRequest = {
 			privacyKey: $formData.privacyKey,
@@ -180,7 +200,54 @@
 	});
 
 	let selectedAgent: number | null = $state(null);
-	$inspect('[SessionForm] selectedAgent', selectedAgent); // DEBUG
+=======
+
+	let selectedAgent: number | null = $state(null);
+
+	// const importFromJson = (json: string) => {
+	// 	const data: CreateSessionRequest = JSON.parse(json);
+	// 	$formData = {
+	// 		links: data.agentGraphRequest?.groups ?? [],
+	// 		applicationId: data.applicationId,
+	// 		privacyKey: data.privacyKey,
+	// 		agents: Object.entries(data.agentGraphRequest?.agents ?? {})
+	// 			.filter(([_, agent]) => agent.provider.type === 'local')
+	// 			.map(([name, agent]) => ({
+	// 				name: agent.name,
+	// 				provider: agent.provider as any, // FIXME: annoying hack since ts doesn't know we filtered for local providers
+	// 				blocking: agent.blocking ?? true,
+	// 				options: agent.options,
+	// 				customTools: new Set(agent.customToolAccess)
+	// 			}))
+	// 	};
+	// 	selectedAgent = $formData.agentGraphRequest.length > 0 ? 0 : null;
+	// };
+
+	// let asJson: CreateSessionRequest = $derived.by(() => {
+	// 	return {
+	// 		privacyKey: $formData.privacyKey,
+	// 		applicationId: $formData.applicationId,
+	// 		agentGraphRequest: {
+	// 			agents: $formData.agentGraphRequest.map((agent) => ({
+	// 				id: {
+	// 					name: agent.name,
+	// 					version: registry[agent.name]?.id.version ?? '1.0.0'
+	// 				},
+	// 				name: agent.name,
+	// 				options: agent.options as any, // FIXME
+	// 				systemPrompt: agent.systemPrompt,
+	// 				blocking: agent.blocking,
+	// 				customToolAccess: Array.from(agent.customToolAccess),
+	// 				provider: agent.provider
+	// 			})),
+	// 			customTools: Object.fromEntries(
+	// 				Array.from(usedTools).map((tool) => [tool, tools[tool]])
+	// 			) as any, // FIXME: !!!
+	// 			groups: $formData.links
+	// 		}
+	// 	} satisfies CreateSessionRequest;
+	// });
+>>>>>>> Stashed changes
 </script>
 
 {#if ctx.connection}
@@ -213,11 +280,11 @@
 								</Form.Control>
 							</Form.Field>
 						</section>
-						<ClipboardImportDialog onImport={importFromJson}>
+						<!-- <ClipboardImportDialog onImport={importFromJson}>
 							{#snippet child({ props })}
 								<Button {...props} variant="outline" class="w-fit">Import <ClipboardCopy /></Button>
 							{/snippet}
-						</ClipboardImportDialog>
+						</ClipboardImportDialog> -->
 						<Separator class="mt-2" />
 
 						<h2>Agents</h2>
@@ -227,7 +294,7 @@
 								class="bg-card text-card-foreground row-span-full flex min-h-0 flex-col gap-6 rounded-md border shadow-sm"
 							>
 								<ul class="flex h-full min-h-0 w-full grow flex-col content-stretch">
-									{#each $formData.agents as agent, i}
+									{#each $formData.agentGraphRequest as agent, i}
 										<li class="contents">
 											<Toggle
 												class="flex justify-start pr-0"
@@ -238,16 +305,17 @@
 													class="size-9"
 													variant="outline"
 													onclick={() => {
-														$formData.agents.splice(i, 1);
-														$formData.agents = $formData.agents;
+														$formData.agentGraphRequest.splice(i, 1);
+														$formData.agentGraphRequest = $formData.agentGraphRequest;
 														selectedAgent =
-															selectedAgent && Math.min(selectedAgent, $formData.agents.length - 1);
+															selectedAgent &&
+															Math.min(selectedAgent, $formData.agentGraphRequest.length - 1);
 													}}><TrashIcon /></TwostepButton
 												>
 											</Toggle>
 										</li>
 									{/each}
-									{#if $formData.agents.length == 0}
+									{#if $formData.agentGraphRequest.length == 0}
 										<li class="contents">
 											<p
 												class="text-muted-foreground flex h-9 grow items-center justify-center text-sm"
@@ -261,23 +329,37 @@
 									<Combobox
 										side="right"
 										align="start"
-										options={Object.keys(agents)}
+										options={Object.keys(registry)}
 										searchPlaceholder="Search agents..."
 										onValueChange={(value) => {
-											const count = $formData.agents.filter((agent) => agent.name === value).length;
+<<<<<<< Updated upstream
+											const count = $formData.agents.filter(
+												(agent) => agent.agentName === value
+											).length;
 											$formData.agents.push({
+												agentName: value,
+=======
+											const count = $formData.agentGraphRequest.filter(
+												(agent) => agent.name === value
+											).length;
+											$formData.agentGraphRequest.push({
+>>>>>>> Stashed changes
 												provider: {
 													type: 'local',
-													runtime: agents[value]?.runtimes?.at(-1) ?? 'executable'
+													runtime: registry[value]?.runtimes?.at(-1) ?? 'executable'
+												},
+												id: {
+													name: value,
+													version: registry[value]?.id.version ?? '1.0.0'
 												},
 												systemPrompt: undefined,
 												blocking: true,
 												name: value + (count > 0 ? `-${count + 1}` : ''),
 												options: {},
-												customTools: new Set()
+												customToolAccess: new Set()
 											});
-											$formData.agents = $formData.agents;
-											selectedAgent = $formData.agents.length - 1;
+											$formData.agentGraphRequest = $formData.agentGraphRequest;
+											selectedAgent = $formData.agentGraphRequest.length - 1;
 										}}
 									>
 										{#snippet trigger({ props })}
@@ -290,9 +372,15 @@
 									</Combobox>
 								</ul>
 							</ScrollArea>
+<<<<<<< Updated upstream
 							{#if selectedAgent !== null && $formData.agents.length > selectedAgent}
 								{@const agent = $formData.agents[selectedAgent]!}
-								{@const availableOptions = agent && agents[agent.name]?.options}
+								{@const availableOptions = agent && agents[agent.agentName]?.options}
+=======
+							{#if selectedAgent !== null && $formData.agentGraphRequest.length > selectedAgent}
+								{@const agent = $formData.agentGraphRequest[selectedAgent]!}
+								{@const availableOptions = agent && registry[agent.name]?.options}
+>>>>>>> Stashed changes
 								<Tabs.Root value="options" class="min-h-0">
 									<Tabs.List class="w-full">
 										<Tabs.Trigger value="options">Options</Tabs.Trigger>
@@ -301,10 +389,10 @@
 									</Tabs.List>
 									<ScrollArea class="min-h-0">
 										<Tabs.Content value="options" class="flex min-h-0 flex-col gap-2">
-											{#if availableOptions && selectedAgent !== null && $formData.agents.length > selectedAgent}
+											{#if availableOptions && selectedAgent !== null && $formData.agentGraphRequest.length > selectedAgent}
 												<Form.ElementField
 													{form}
-													name="agents[{selectedAgent}].name"
+													name="agents.[{selectedAgent}].name"
 													class="flex items-center gap-2"
 												>
 													<Form.Control>
@@ -315,7 +403,7 @@
 															>
 															<Input
 																{...props}
-																bind:value={$formData.agents[selectedAgent!]!.name}
+																bind:value={$formData.agentGraphRequest[selectedAgent!]!.name}
 															/>
 														{/snippet}
 													</Form.Control>
@@ -335,16 +423,23 @@
 																class="w-auto grow pr-[2px]"
 																side="right"
 																align="start"
-																options={Object.keys(agents)}
+																options={Object.keys(registry)}
 																searchPlaceholder="Search agents..."
-																bind:value={$formData.agents[selectedAgent].name}
+<<<<<<< Updated upstream
+																bind:value={$formData.agents[selectedAgent!]!.agentName}
+=======
+																bind:value={$formData.agentGraphRequest[selectedAgent].name}
+>>>>>>> Stashed changes
 																onValueChange={() => {
-																	for (const name in $formData.agents[selectedAgent!]!.options) {
+																	for (const name in $formData.agentGraphRequest[selectedAgent!]!
+																		.options) {
 																		if (!(name in availableOptions)) {
-																			delete $formData.agents[selectedAgent!]!.options[name];
+																			delete $formData.agentGraphRequest[selectedAgent!]!.options[
+																				name
+																			];
 																		}
 																	}
-																	$formData.agents = $formData.agents;
+																	$formData.agentGraphRequest = $formData.agentGraphRequest;
 																}}
 															/>
 														{/snippet}
@@ -366,9 +461,15 @@
 																class="w-auto grow pr-[2px]"
 																side="right"
 																align="start"
-																options={agents[agent.name]?.runtimes ?? []}
+<<<<<<< Updated upstream
+																options={agents[agent.agentName]?.runtimes ?? []}
+=======
+																options={registry[agent.name]?.runtimes ?? []}
+>>>>>>> Stashed changes
 																searchPlaceholder="Search agents..."
-																bind:value={$formData.agents[selectedAgent!]!.provider.runtime}
+																bind:value={
+																	$formData.agentGraphRequest[selectedAgent!]!.provider.runtime
+																}
 															/>
 														{/snippet}
 													</Form.Control>
@@ -391,9 +492,11 @@
 																	{...props}
 																	type={inputTypes[opt.type]}
 																	bind:value={
-																		() => $formData.agents[selectedAgent!]!.options[name]?.value,
+																		() =>
+																			$formData.agentGraphRequest[selectedAgent!]!.options[name]
+																				?.value,
 																		(value) => {
-																			$formData.agents[selectedAgent!]!.options[name] = {
+																			$formData.agentGraphRequest[selectedAgent!]!.options[name] = {
 																				type: opt.type,
 																				value
 																			} as any; // FIXME: !!
@@ -418,14 +521,14 @@
 														>
 														<Textarea
 															{...props}
-															bind:value={$formData.agents[selectedAgent!]!.systemPrompt}
+															bind:value={$formData.agentGraphRequest[selectedAgent!]!.systemPrompt}
 														/>
 													{/snippet}
 												</Form.Control>
 											</Form.ElementField>
 										</Tabs.Content>
 										<Tabs.Content value="tools">
-											<Form.Fieldset {form} name="agents[{selectedAgent}].customTools">
+											<Form.Fieldset {form} name="agents[{selectedAgent}].customToolsAccess">
 												<ul class="flex flex-col gap-2">
 													{#each Object.keys(tools) as tool (tool)}
 														<li class="flex gap-2">
@@ -436,21 +539,26 @@
 																		value={tool}
 																		bind:checked={
 																			() =>
-																				$formData.agents[selectedAgent!]?.customTools?.has(tool) ??
-																				false,
+																				$formData.agentGraphRequest[
+																					selectedAgent!
+																				]?.customToolAccess?.has(tool) ?? false,
 																			() => {}
 																		}
 																		onCheckedChange={(checked) => {
 																			if (
 																				selectedAgent === null ||
-																				!$formData.agents[selectedAgent]
+																				!$formData.agentGraphRequest[selectedAgent]
 																			)
 																				return;
 																			if (checked)
-																				$formData.agents[selectedAgent!]!.customTools.add(tool);
+																				$formData.agentGraphRequest[
+																					selectedAgent!
+																				]!.customToolAccess.add(tool);
 																			else
-																				$formData.agents[selectedAgent!]!.customTools.delete(tool);
-																			$formData.agents = $formData.agents;
+																				$formData.agentGraphRequest[
+																					selectedAgent!
+																				]!.customToolAccess.delete(tool);
+																			$formData.agentGraphRequest = $formData.agentGraphRequest;
 																		}}
 																	/>
 																	<Form.Label>{tool}</Form.Label>
@@ -487,10 +595,10 @@
 											{/if}
 										</Select.Trigger>
 										<Select.Content>
-											{#if $formData.agents.length == 0}
+											{#if $formData.agentGraphRequest.length == 0}
 												<span class="text-muted-foreground px-2 text-sm italic">No agents</span>
 											{/if}
-											{#each new Set($formData.agents.map((agent) => agent.name)) as id}
+											{#each new Set($formData.agentGraphRequest.map((agent) => agent.name)) as id}
 												<Select.Item value={id}>{id}</Select.Item>
 											{/each}
 										</Select.Content>
@@ -506,11 +614,11 @@
 								>
 							</ul>
 						</ModalCollapsible>
-						<ModalCollapsible title="Export">
+						<!-- <ModalCollapsible title="Export">
 							<CodeBlock text={JSON.stringify(asJson, null, 2)} class="" language="json" />
-							<!-- TODO: add an Issues: collapsible with a user friendly list (e.g "Agents > my-agent > API_KEY : misssing required field", and it's clickable)
-							<!-- <CodeBlock text={JSON.stringify($errors, null, 2)} class="" language="json" /> -->
-						</ModalCollapsible>
+							TODO: add an Issues: collapsible with a user friendly list (e.g "Agents > my-agent > API_KEY : misssing required field", and it's clickable)
+							<CodeBlock text={JSON.stringify($errors, null, 2)} class="" language="json" />
+						</ModalCollapsible> -->
 					</section>
 				</ScrollArea>
 
