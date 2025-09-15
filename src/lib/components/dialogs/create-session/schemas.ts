@@ -6,8 +6,11 @@ const formSchema = z.object({
 	privacyKey: z.string().nonempty(),
 	agents: z.array(
 		z.object({
+			id: z.object({
+				name: z.string().nonempty(),
+				version: z.string().nonempty()
+			}),
 			name: z.string().nonempty(),
-			agentName: z.string().nonempty(),
 			provider: z.discriminatedUnion('type', [
 				z.object({
 					type: z.literal('local'),
@@ -15,7 +18,7 @@ const formSchema = z.object({
 				})
 			]),
 			systemPrompt: z.string().optional(),
-			customTools: z.set(z.string()),
+			customToolAccess: z.set(z.string()),
 			blocking: z.boolean(),
 			options: z.record(
 				z.string(),
@@ -27,18 +30,18 @@ const formSchema = z.object({
 			)
 		})
 	),
-	links: z.array(z.array(z.string()))
+	groups: z.array(z.array(z.string()))
 });
 
 export const makeFormSchema = (registryAgents: { [agent: string]: PublicRegistryAgent }) =>
 	formSchema.superRefine((data, ctx) => {
 		data.agents.forEach((agent, i) => {
-			const regAgent = registryAgents[agent.agentName];
+			const regAgent = registryAgents[`${agent.id.name}${agent.id.version}`];
 			if (!regAgent) {
 				ctx.addIssue({
 					code: 'custom',
 					path: ['agent', i, 'agentName'],
-					message: `Agent name ${agent.agentName} not found in registry.`
+					message: `Agent name ${agent.id.name}@${agent.id.version} not found in registry.`
 				});
 				return;
 			}

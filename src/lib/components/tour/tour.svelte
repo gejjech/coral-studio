@@ -42,7 +42,7 @@
 
 	const currentItem = $derived(items[current]);
 	const scrimStyle = $derived.by(() => {
-		if (!currentItem.target) return '';
+		if (!currentItem?.target) return '';
 		const boundingRect = currentItem.target.getBoundingClientRect();
 		const left = boundingRect.left;
 		const right = left + boundingRect.width;
@@ -71,8 +71,8 @@
 		<Popover.Content
 			class={className}
 			collisionPadding={20}
-			customAnchor={currentItem.target}
-			side={currentItem.side ?? side}
+			customAnchor={currentItem?.target}
+			side={currentItem?.side ?? side}
 			interactOutsideBehavior="ignore"
 		>
 			<Popover.Close
@@ -81,7 +81,7 @@
 				<IconX />
 				<span class="sr-only">Close</span>
 			</Popover.Close>
-			<p class="text-sm leading-tight whitespace-pre-wrap">{currentItem.text}</p>
+			<p class="text-sm leading-tight whitespace-pre-wrap">{currentItem?.text}</p>
 			<footer class="mt-2 flex">
 				<Button
 					variant="outline"

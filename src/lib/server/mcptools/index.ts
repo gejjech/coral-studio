@@ -44,7 +44,7 @@ const toolCalls: {
 		sock.emit('agent_request', q);
 		return new Promise((res) => {
 			sock.on('user_response', ({ id: resId, value }) => {
-				questions[`${sessionId}-${agentId}`].userQuestion = value;
+				questions[`${sessionId}-${agentId}`]!.userQuestion = value;
 				console.log('user_response', { id, resId, value });
 				if (resId !== id) return;
 				res(new Response(value));
