@@ -183,45 +183,44 @@
 {#if ctx.connection}
 	<Dialog.Root bind:open>
 		<Dialog.Content
-			class="grid max-h-[90svh] grid-cols-[100%] grid-rows-[max-content_minmax(0,1fr)_max-content] gap-y-2 lg:max-w-2xl"
+			class="grid h-[50vh] max-h-[50vh] grid-cols-[100%] grid-rows-[max-content_minmax(0,1fr)_max-content] gap-y-2 lg:max-w-2xl"
 		>
 			<Dialog.Header>
 				<Dialog.Title>New Session</Dialog.Title>
 				<Dialog.Description>Create a new session.</Dialog.Description>
 			</Dialog.Header>
 			<form method="POST" use:enhance>
-				<ScrollArea class="">
-					<section class="flex max-w-full flex-col gap-2 pr-4">
-						<section class="grid grid-cols-[minmax(0,max-content)_auto] gap-4 gap-y-2 pt-2">
-							<Form.Field {form} name="applicationId">
-								<Form.Control>
-									{#snippet children({ props })}
-										<Form.Label>Application ID</Form.Label>
-										<Input {...props} bind:value={$formData.applicationId} />
-									{/snippet}
-								</Form.Control>
-							</Form.Field>
-							<Form.Field {form} name="privacyKey">
-								<Form.Control>
-									{#snippet children({ props })}
-										<Form.Label>Privacy Key</Form.Label>
-										<Input {...props} type="password" bind:value={$formData.privacyKey} />
-									{/snippet}
-								</Form.Control>
-							</Form.Field>
-						</section>
-						<ClipboardImportDialog onImport={importFromJson}>
-							{#snippet child({ props })}
-								<Button {...props} variant="outline" class="w-fit">Import <ClipboardCopy /></Button>
-							{/snippet}
-						</ClipboardImportDialog>
-						<Separator class="mt-2" />
-
+				<section class="flex max-w-full flex-col gap-2 pr-4">
+					<section class="grid grid-cols-[minmax(0,max-content)_auto] gap-4 gap-y-2 pt-2">
+						<Form.Field {form} name="applicationId">
+							<Form.Control>
+								{#snippet children({ props })}
+									<Form.Label>Application ID</Form.Label>
+									<Input {...props} bind:value={$formData.applicationId} />
+								{/snippet}
+							</Form.Control>
+						</Form.Field>
+						<Form.Field {form} name="privacyKey">
+							<Form.Control>
+								{#snippet children({ props })}
+									<Form.Label>Privacy Key</Form.Label>
+									<Input {...props} type="password" bind:value={$formData.privacyKey} />
+								{/snippet}
+							</Form.Control>
+						</Form.Field>
+					</section>
+					<ClipboardImportDialog onImport={importFromJson}>
+						{#snippet child({ props })}
+							<Button {...props} variant="outline" class="w-fit">Import <ClipboardCopy /></Button>
+						{/snippet}
+					</ClipboardImportDialog>
+					<Separator class="mt-2" />
+					<ScrollArea class="h-[30vh]">
 						<h2>Agents</h2>
 						<!-- TODO: h-96 here but overflow is ruining me -->
 						<section class="grid grid-cols-2 grid-rows-[min-content_1fr] gap-1 gap-x-2">
 							<ScrollArea
-								class="bg-card text-card-foreground row-span-full flex min-h-0 flex-col gap-6 rounded-md border shadow-sm"
+								class="bg-card text-card-foreground row-span-full flex h-96 min-h-0 flex-col gap-6 rounded-md border shadow-sm"
 							>
 								<ul class="flex h-full min-h-0 w-full grow flex-col content-stretch">
 									{#each $formData.agents as agent, i}
@@ -295,17 +294,17 @@
 									</Combobox>
 								</ul>
 							</ScrollArea>
-							{#if selectedAgent !== null && $formData.agents.length > selectedAgent}
-								{@const agent = $formData.agents[selectedAgent]!}
-								{@const availableOptions = agent && registry[idAsKey(agent.id)]?.options}
-								<Tabs.Root value="options" class="min-h-0">
-									<Tabs.List class="w-full">
-										<Tabs.Trigger value="options">Options</Tabs.Trigger>
-										<Tabs.Trigger value="prompt">Prompt</Tabs.Trigger>
-										<Tabs.Trigger value="tools">Tools</Tabs.Trigger>
-									</Tabs.List>
-									<ScrollArea class="min-h-0">
-										<Tabs.Content value="options" class="flex min-h-0 flex-col gap-2">
+							<ScrollArea class="mx-4 h-96 overflow-clip rounded-t-lg">
+								{#if selectedAgent !== null && $formData.agents.length > selectedAgent}
+									{@const agent = $formData.agents[selectedAgent]!}
+									{@const availableOptions = agent && registry[idAsKey(agent.id)]?.options}
+									<Tabs.Root value="options" class="min-h-0">
+										<Tabs.List class="absolute top-0 left-0 z-50 w-full rounded-t-none">
+											<Tabs.Trigger value="options">Options</Tabs.Trigger>
+											<Tabs.Trigger value="prompt">Prompt</Tabs.Trigger>
+											<Tabs.Trigger value="tools">Tools</Tabs.Trigger>
+										</Tabs.List>
+										<Tabs.Content value="options" class="flex min-h-0 flex-col gap-2 pt-12">
 											{#if availableOptions && selectedAgent !== null && $formData.agents.length > selectedAgent}
 												<Form.ElementField
 													{form}
@@ -443,7 +442,7 @@
 												{/each}
 											{/if}
 										</Tabs.Content>
-										<Tabs.Content value="prompt">
+										<Tabs.Content value="prompt" class="pt-12">
 											<Form.ElementField {form} name="agents[{selectedAgent}].systemPrompt">
 												<Form.Control>
 													{#snippet children({ props })}
@@ -458,7 +457,7 @@
 												</Form.Control>
 											</Form.ElementField>
 										</Tabs.Content>
-										<Tabs.Content value="tools">
+										<Tabs.Content value="tools" class="pt-12">
 											<Form.Fieldset {form} name="agents[{selectedAgent}].customToolAccess">
 												<ul class="flex flex-col gap-2">
 													{#each Object.keys(tools) as tool (tool)}
@@ -499,9 +498,9 @@
 												</ul>
 											</Form.Fieldset>
 										</Tabs.Content>
-									</ScrollArea>
-								</Tabs.Root>
-							{/if}
+									</Tabs.Root>
+								{/if}
+							</ScrollArea>
 						</section>
 
 						<ModalCollapsible title="Groups">
@@ -550,12 +549,12 @@
 							<!-- TODO: add an Issues: collapsible with a user friendly list (e.g "Agents > my-agent > API_KEY : misssing required field", and it's clickable)
 							<!-- <CodeBlock text={JSON.stringify($errors, null, 2)} class="" language="json" /> -->
 						</ModalCollapsible>
-					</section>
-				</ScrollArea>
+					</ScrollArea>
 
-				<Dialog.Footer>
-					<Form.Button>Create</Form.Button>
-				</Dialog.Footer>
+					<Dialog.Footer>
+						<Form.Button>Create</Form.Button>
+					</Dialog.Footer>
+				</section>
 			</form>
 		</Dialog.Content>
 	</Dialog.Root>
