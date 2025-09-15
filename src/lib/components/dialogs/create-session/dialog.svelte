@@ -183,7 +183,7 @@
 {#if ctx.connection}
 	<Dialog.Root bind:open>
 		<Dialog.Content
-			class="flex h-[60%] w-full !max-w-full flex-col sm:w-[90%] md:w-[80%] lg:w-[70%] xl:w-[60%]"
+			class="3xl:w-[45%] flex h-[60%] w-full !max-w-full flex-col sm:w-[75%] md:w-[70%] lg:w-[80%] xl:w-[70%] 2xl:w-[55%]"
 		>
 			<Tabs.Root value="agents" class="grow overflow-hidden">
 				<Dialog.Header>
