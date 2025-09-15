@@ -400,7 +400,7 @@
 																	() => ({ key: runtime, label: runtime, value: runtime }),
 																	(selected) => {
 																		$formData.agents[selectedAgent!]!.provider.runtime =
-																			selected as any;
+																			selected.value;
 																	}
 																}
 															/>
