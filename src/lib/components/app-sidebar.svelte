@@ -103,6 +103,8 @@
 		} else {
 			toast.success('Feedback submitted successfully. Thank you!');
 			content = '';
+			user_email = '';
+			feedbackVisible = false;
 		}
 	}
 </script>
@@ -278,14 +280,14 @@
 					<Card.Title>Submit feedback</Card.Title>
 				</Card.Header>
 				<Card.Content class="flex flex-col gap-2">
-					<p
-						class="text-muted-foreground text-xs {content.length > 5000 ? 'text-destructive' : ''}"
-					>
-						Max 5,000 characters, for more detailed feedback, or help, please visit our <a
-							href="https://discord.gg/fV7sTAQQkk"
-							target="_blank"
-							class="underline">Discord</a
+					<p class="text-muted-foreground text-xs">
+						Limited from <span
+							class={content.length > 0 && content.length < 10 ? 'text-destructive' : ''}>10</span
 						>
+						to
+						<span class={content.length > 4999 ? 'text-destructive' : ''}>5,000 characters</span>,
+						for more detailed feedback, please visit our
+						<a href="https://discord.gg/fV7sTAQQkk" target="_blank" class="underline">Discord</a>
 					</p>
 					<Textarea
 						placeholder="Type your message here."
@@ -301,7 +303,10 @@
 					<Button variant="outline"
 						><a href="https://discord.gg/fV7sTAQQkk" target="_blank">Visit our Discord</a></Button
 					>
-					<Button type="submit" disabled={content.length < 10 || content.length > 5000}>Send</Button
+					<Button
+						variant="secondary"
+						type="submit"
+						disabled={content.length < 10 || content.length > 5000}>Send</Button
 					>
 				</Card.Footer>
 			</Card.Root>
