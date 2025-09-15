@@ -20,10 +20,12 @@
 
 	import { cn } from '$lib/utils';
 	import {
+		idAsKey,
 		sessionCtx,
 		type CustomTool,
 		type GraphAgentRequest,
-		type PublicRegistryAgent
+		type PublicRegistryAgent,
+		type Registry
 	} from '$lib/threads';
 	import { Session } from '$lib/session.svelte';
 	import { tools } from '$lib/mcptools';
@@ -50,8 +52,9 @@
 	import type { paths, components } from '../../../../generated/api';
 	import SidebarMenuAction from '$lib/components/ui/sidebar/sidebar-menu-action.svelte';
 	import FormField from '$lib/components/ui/form/form-field.svelte';
+	import { tick } from 'svelte';
 
-	type CreateSessionRequest = components['schemas']['CreateSessionRequest'];
+	type CreateSessionRequest = components['schemas']['SessionRequest'];
 
 	/// {a?: number | undefined} -> {a: number | undefined}
 	type Complete<T> = {
@@ -68,12 +71,12 @@
 		secret: 'password'
 	};
 
-	let {
-		open = $bindable(false),
-		agents
-	}: { open: boolean; agents: { [id: string]: PublicRegistryAgent } } = $props();
+	let { open = $bindable(false), registry: registryRaw }: { open: boolean; registry: Registry } =
+		$props();
 
-	let formSchema = $derived(schemas.makeFormSchema(agents));
+	let registry = $derived(Object.fromEntries(registryRaw.map((a) => [idAsKey(a.id), a])));
+
+	let formSchema = $derived(schemas.makeFormSchema(registry));
 	let form = $derived(
 		superForm(defaults(zod4(formSchema)), {
 			SPA: true,
@@ -96,7 +99,7 @@
 					if (res.error) {
 						// todo @alan there should probably be an api class where we can generic-ify the handling of this error
 						// with a proper type implementation too..!
-						let error: { message: string; stackTrace: string[] } = res.error;
+						let error: { message?: string; stackTrace: string[] } = res.error;
 						console.error(error.stackTrace);
 
 						toast.error(`Failed to create session: ${error.message}`);
@@ -104,10 +107,10 @@
 					}
 					if (res.data) {
 						if (!ctx.sessions) ctx.sessions = [];
-						ctx.sessions.push(res.data.session_id);
+						ctx.sessions.push(res.data.sessionId);
 						ctx.session = new Session({
 							...ctx.connection,
-							session: res.data.session_id
+							session: res.data.sessionId
 						});
 						open = false;
 					} else {
@@ -126,46 +129,50 @@
 	const importFromJson = (json: string) => {
 		const data: CreateSessionRequest = JSON.parse(json);
 		$formData = {
-			links: data.agent_graph?.links ?? [],
-			applicationId: data.application_id,
-			privacyKey: data.privacy_key,
-			agents: Object.entries(data.agent_graph?.agents ?? {})
-				.filter(([_, agent]) => agent.provider.type === 'local')
-				.map(([name, agent]) => ({
-					name,
-					agentName: agent.agent_name,
+			groups: data.agentGraphRequest.groups ?? [],
+			applicationId: data.applicationId,
+			privacyKey: data.privacyKey,
+			agents: data.agentGraphRequest.agents
+				.filter((agent) => agent.provider.type === 'local')
+				.map((agent) => ({
+					id: agent.id,
+					name: agent.name,
 					provider: agent.provider as any, // FIXME: annoying hack since ts doesn't know we filtered for local providers
 					blocking: agent.blocking ?? true,
 					options: agent.options,
-					customTools: new Set(agent.tools)
+					customToolAccess: new Set(agent.customToolAccess)
 				}))
 		};
 		selectedAgent = $formData.agents.length > 0 ? 0 : null;
 	};
 
 	let usedTools = $derived(
-		new Set($formData.agents.flatMap((agent) => Array.from(agent.customTools)))
+		new Set($formData.agents.flatMap((agent) => Array.from(agent.customToolAccess)))
 	) as Set<keyof typeof tools>;
 	let asJson: CreateSessionRequest = $derived.by(() => {
 		return {
-			privacy_key: $formData.privacyKey,
-			application_id: $formData.applicationId,
-			agent_graph: {
-				agents: Object.fromEntries(
-					$formData.agents.map((agent) => [
-						agent.name,
-						{
-							provider: agent.provider,
-							blocking: agent.blocking,
-							options: agent.options as any, // FIXME: !!!
-							system_prompt: agent.systemPrompt,
-							agent_name: agent.agentName,
-							tools: Array.from(agent.customTools)
-						} satisfies Complete<NonNullable<CreateSessionRequest['agent_graph']>['agents'][string]>
-					])
-				),
-				tools: Object.fromEntries(Array.from(usedTools).map((tool) => [tool, tools[tool]])) as any, // FIXME: !!!
-				links: $formData.links
+			privacyKey: $formData.privacyKey,
+			applicationId: $formData.applicationId,
+			agentGraphRequest: {
+				agents: $formData.agents.map((agent) => {
+					return {
+						id: agent.id,
+						name: agent.name,
+						description: undefined,
+						coralPlugins: [],
+						provider: agent.provider,
+						blocking: agent.blocking,
+						options: agent.options as any, // FIXME: !!!
+						systemPrompt: agent.systemPrompt,
+						customToolAccess: Array.from(agent.customToolAccess)
+					} satisfies Complete<
+						NonNullable<CreateSessionRequest['agentGraphRequest']>['agents'][number]
+					>;
+				}),
+				customTools: Object.fromEntries(
+					Array.from(usedTools).map((tool) => [tool, tools[tool]])
+				) as any, // FIXME: !!!
+				groups: $formData.groups
 			}
 		} satisfies CreateSessionRequest;
 	});
@@ -251,23 +258,28 @@
 									<Combobox
 										side="right"
 										align="start"
-										options={Object.keys(agents)}
+										options={registryRaw.map((a) => ({
+											label: `${a.id.name} ${a.id.version}`,
+											key: idAsKey(a.id),
+											value: a.id
+										}))}
 										searchPlaceholder="Search agents..."
-										onValueChange={(value) => {
+										onValueChange={(id) => {
 											const count = $formData.agents.filter(
-												(agent) => agent.agentName === value
+												(agent) => agent.id.name === id.name
 											).length;
+											const runtime = registry[idAsKey(id)]?.runtimes?.at(-1) ?? 'executable';
 											$formData.agents.push({
-												agentName: value,
+												id: id,
 												provider: {
 													type: 'local',
-													runtime: agents[value]?.runtimes?.at(-1) ?? 'executable'
+													runtime: runtime !== 'function' ? runtime : 'executable'
 												},
 												systemPrompt: undefined,
 												blocking: true,
-												name: value + (count > 0 ? `-${count + 1}` : ''),
+												name: id.name + (count > 0 ? `-${count + 1}` : ''),
 												options: {},
-												customTools: new Set()
+												customToolAccess: new Set()
 											});
 											$formData.agents = $formData.agents;
 											selectedAgent = $formData.agents.length - 1;
@@ -278,14 +290,14 @@
 												>New agent<PlusIcon /></Button
 											>{/snippet}
 										{#snippet option({ option })}
-											{option}
+											{option.label}
 										{/snippet}
 									</Combobox>
 								</ul>
 							</ScrollArea>
 							{#if selectedAgent !== null && $formData.agents.length > selectedAgent}
 								{@const agent = $formData.agents[selectedAgent]!}
-								{@const availableOptions = agent && agents[agent.agentName]?.options}
+								{@const availableOptions = agent && registry[idAsKey(agent.id)]?.options}
 								<Tabs.Root value="options" class="min-h-0">
 									<Tabs.List class="w-full">
 										<Tabs.Trigger value="options">Options</Tabs.Trigger>
@@ -315,11 +327,12 @@
 												</Form.ElementField>
 												<Form.ElementField
 													{form}
-													name="agents[{selectedAgent}].agentName"
+													name="agents[{selectedAgent}].id.name"
 													class="flex items-center gap-2"
 												>
 													<Form.Control>
 														{#snippet children({ props })}
+															{@const id = $formData.agents[selectedAgent!]!.id}
 															<TooltipLabel tooltip={'Type of this agent'} class="m-0"
 																>Type</TooltipLabel
 															>
@@ -328,16 +341,31 @@
 																class="w-auto grow pr-[2px]"
 																side="right"
 																align="start"
-																options={Object.keys(agents)}
+																bind:selected={
+																	() => ({
+																		label: `${id.name} ${id.version}`,
+																		key: idAsKey(id),
+																		value: id
+																	}),
+																	() => {}
+																}
+																options={registryRaw.map((a) => ({
+																	label: `${a.id.name} ${a.id.version}`,
+																	key: idAsKey(a.id),
+																	value: a.id
+																}))}
 																searchPlaceholder="Search agents..."
-																bind:value={$formData.agents[selectedAgent!]!.agentName}
-																onValueChange={() => {
-																	for (const name in $formData.agents[selectedAgent!]!.options) {
-																		if (!(name in availableOptions)) {
-																			delete $formData.agents[selectedAgent!]!.options[name];
-																		}
-																	}
+																onValueChange={(value) => {
+																	$formData.agents[selectedAgent!]!.id = value;
 																	$formData.agents = $formData.agents;
+																	tick().then(() => {
+																		for (const name in $formData.agents[selectedAgent!]!.options) {
+																			if (!(name in availableOptions)) {
+																				delete $formData.agents[selectedAgent!]!.options[name];
+																			}
+																		}
+																		$formData.agents = $formData.agents;
+																	});
 																}}
 															/>
 														{/snippet}
@@ -350,6 +378,7 @@
 												>
 													<Form.Control>
 														{#snippet children({ props })}
+															{@const runtime = $formData.agents[selectedAgent!]!.provider.runtime}
 															<TooltipLabel
 																tooltip={'What runtime to use for this agent.'}
 																class="m-0">Runtime</TooltipLabel
@@ -359,9 +388,21 @@
 																class="w-auto grow pr-[2px]"
 																side="right"
 																align="start"
-																options={agents[agent.agentName]?.runtimes ?? []}
+																options={((registry[idAsKey(agent.id)]?.runtimes as any) ?? []).map(
+																	(value: string) => ({
+																		key: value,
+																		label: value,
+																		value
+																	})
+																)}
 																searchPlaceholder="Search agents..."
-																bind:value={$formData.agents[selectedAgent!]!.provider.runtime}
+																bind:selected={
+																	() => ({ key: runtime, label: runtime, value: runtime }),
+																	(selected) => {
+																		$formData.agents[selectedAgent!]!.provider.runtime =
+																			selected.value;
+																	}
+																}
 															/>
 														{/snippet}
 													</Form.Control>
@@ -418,7 +459,7 @@
 											</Form.ElementField>
 										</Tabs.Content>
 										<Tabs.Content value="tools">
-											<Form.Fieldset {form} name="agents[{selectedAgent}].customTools">
+											<Form.Fieldset {form} name="agents[{selectedAgent}].customToolAccess">
 												<ul class="flex flex-col gap-2">
 													{#each Object.keys(tools) as tool (tool)}
 														<li class="flex gap-2">
@@ -429,8 +470,9 @@
 																		value={tool}
 																		bind:checked={
 																			() =>
-																				$formData.agents[selectedAgent!]?.customTools?.has(tool) ??
-																				false,
+																				$formData.agents[selectedAgent!]?.customToolAccess?.has(
+																					tool
+																				) ?? false,
 																			() => {}
 																		}
 																		onCheckedChange={(checked) => {
@@ -440,9 +482,13 @@
 																			)
 																				return;
 																			if (checked)
-																				$formData.agents[selectedAgent!]!.customTools.add(tool);
+																				$formData.agents[selectedAgent!]!.customToolAccess.add(
+																					tool
+																				);
 																			else
-																				$formData.agents[selectedAgent!]!.customTools.delete(tool);
+																				$formData.agents[selectedAgent!]!.customToolAccess.delete(
+																					tool
+																				);
 																			$formData.agents = $formData.agents;
 																		}}
 																	/>
@@ -463,13 +509,13 @@
 								Define a list of groups, where each agent in a group can all interact.
 							</p>
 							<ul class="mt-2 flex flex-col gap-1">
-								{#each $formData.links as link, i}
+								{#each $formData.groups as link, i}
 									<Select.Root
 										type="multiple"
 										value={link}
 										onValueChange={(value) => {
-											$formData.links[i] = value;
-											$formData.links = $formData.links;
+											$formData.groups[i] = value;
+											$formData.groups = $formData.groups;
 										}}
 									>
 										<Select.Trigger>
@@ -492,9 +538,9 @@
 								<Button
 									size="icon"
 									class="w-fit gap-1 px-3"
-									disabled={($formData.links.at(-1)?.length ?? 1) == 0}
+									disabled={($formData.groups.at(-1)?.length ?? 1) == 0}
 									onclick={() => {
-										$formData.links = [...$formData.links, []];
+										$formData.groups = [...$formData.groups, []];
 									}}>New group<PlusIcon /></Button
 								>
 							</ul>

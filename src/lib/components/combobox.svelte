@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="Value">
 	import CheckIcon from '@lucide/svelte/icons/check';
 	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
 	import { tick, type ComponentProps, type Snippet } from 'svelte';
@@ -9,7 +9,7 @@
 
 	let {
 		open = $bindable(false),
-		value = $bindable(''),
+		selected = $bindable(undefined),
 		selectPlaceholder = 'Select an item...',
 		searchPlaceholder = 'Search items...',
 		emptyLabel = 'No items found.',
@@ -24,17 +24,17 @@
 		class: className
 	}: {
 		open?: boolean;
-		value?: string;
-		options?: string[];
+		selected?: { label: string; key: string; value: Value } | undefined;
+		options?: { label: string; key: string; value: Value }[];
 		selectPlaceholder?: string;
 		searchPlaceholder?: string;
 		emptyLabel?: string;
-		onValueChange?: (value: string) => void;
+		onValueChange?: (value: Value) => void;
 
 		side?: ComponentProps<typeof Popover.Content>['side'];
 		align?: ComponentProps<typeof Popover.Content>['align'];
 
-		option?: Snippet<[{ option: string }]>;
+		option?: Snippet<[{ option: { label: string; key: string; value: Value } }]>;
 		trigger?: Snippet<[{ props: Record<string, unknown> }]>;
 		class?: string;
 	} = $props();
@@ -64,7 +64,7 @@
 					role="combobox"
 					aria-expanded={open}
 				>
-					{value || selectPlaceholder}
+					{selected?.label || selectPlaceholder}
 					<ChevronsUpDownIcon class="ml-2 size-4 shrink-0 opacity-50" />
 				</Button>
 			{/if}
@@ -78,18 +78,20 @@
 				<Command.Group>
 					{#each options as option}
 						<Command.Item
-							value={option}
+							value={option.key}
 							onSelect={() => {
-								value = option;
-								onValueChange?.(value);
+								selected = option;
+								onValueChange?.(option.value);
 								closeAndFocusTrigger();
 							}}
 						>
 							{#if optionChild}
 								{@render optionChild({ option })}
 							{:else}
-								<CheckIcon class={cn('mr-2 size-4', value !== option && 'text-transparent')} />
-								{option}
+								<CheckIcon
+									class={cn('mr-2 size-4', selected?.key !== option.key && 'text-transparent')}
+								/>
+								{option.label}
 							{/if}
 						</Command.Item>
 					{/each}
