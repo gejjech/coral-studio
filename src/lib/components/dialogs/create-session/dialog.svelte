@@ -187,17 +187,17 @@
 		<Dialog.Content
 			class="3xl:w-[45%] flex h-[60%] w-full !max-w-full flex-col sm:w-[75%] md:w-[70%] lg:w-[80%] xl:w-[70%] 2xl:w-[55%]"
 		>
-			<Tabs.Root value="agents" class="grow overflow-hidden">
-				<Dialog.Header>
-					<Dialog.Title>New Session</Dialog.Title>
-					<Dialog.Description>Create a new session.</Dialog.Description>
-					<Tabs.List class=" w-full">
-						<Tabs.Trigger value="agents">Agents</Tabs.Trigger>
-						<Tabs.Trigger value="groups">Groups</Tabs.Trigger>
-						<Tabs.Trigger value="export">Export</Tabs.Trigger>
-					</Tabs.List>
-				</Dialog.Header>
-				<form method="POST" use:enhance class="flex grow flex-col overflow-hidden">
+			<form method="POST" use:enhance class="flex grow flex-col overflow-hidden">
+				<Tabs.Root value="agents" class="grow overflow-hidden">
+					<Dialog.Header>
+						<Dialog.Title>New Session</Dialog.Title>
+						<Dialog.Description>Create a new session.</Dialog.Description>
+						<Tabs.List class=" w-full">
+							<Tabs.Trigger value="agents">Agents</Tabs.Trigger>
+							<Tabs.Trigger value="groups">Groups</Tabs.Trigger>
+							<Tabs.Trigger value="export">Export</Tabs.Trigger>
+						</Tabs.List>
+					</Dialog.Header>
 					<Tabs.Content value="agents" class="grid grow grid-cols-4  gap-1 gap-x-2 overflow-hidden">
 						<aside class="row-span-full flex min-h-0 grow flex-col gap-2 overflow-hidden">
 							<Combobox
@@ -519,34 +519,34 @@
 							language="json"
 						/>
 					</Tabs.Content>
-				</form>
-			</Tabs.Root>
-			<Dialog.Footer>
-				<section class="flex items-end gap-4">
-					<Form.Field {form} name="applicationId">
-						<Form.Control>
-							{#snippet children({ props })}
-								<Form.Label>Application ID</Form.Label>
-								<Input {...props} bind:value={$formData.applicationId} />
+				</Tabs.Root>
+				<Dialog.Footer>
+					<section class="flex items-end gap-4">
+						<Form.Field {form} name="applicationId">
+							<Form.Control>
+								{#snippet children({ props })}
+									<Form.Label>Application ID</Form.Label>
+									<Input {...props} bind:value={$formData.applicationId} />
+								{/snippet}
+							</Form.Control>
+						</Form.Field>
+						<Form.Field {form} name="privacyKey">
+							<Form.Control>
+								{#snippet children({ props })}
+									<Form.Label>Privacy Key</Form.Label>
+									<Input {...props} type="password" bind:value={$formData.privacyKey} />
+								{/snippet}
+							</Form.Control>
+						</Form.Field>
+						<ClipboardImportDialog onImport={importFromJson}>
+							{#snippet child({ props })}
+								<Button {...props} variant="outline" class="w-fit">Import <ClipboardCopy /></Button>
 							{/snippet}
-						</Form.Control>
-					</Form.Field>
-					<Form.Field {form} name="privacyKey">
-						<Form.Control>
-							{#snippet children({ props })}
-								<Form.Label>Privacy Key</Form.Label>
-								<Input {...props} type="password" bind:value={$formData.privacyKey} />
-							{/snippet}
-						</Form.Control>
-					</Form.Field>
-					<ClipboardImportDialog onImport={importFromJson}>
-						{#snippet child({ props })}
-							<Button {...props} variant="outline" class="w-fit">Import <ClipboardCopy /></Button>
-						{/snippet}
-					</ClipboardImportDialog>
-					<Form.Button>Create</Form.Button>
-				</section>
-			</Dialog.Footer>
+						</ClipboardImportDialog>
+						<Form.Button>Create</Form.Button>
+					</section>
+				</Dialog.Footer>
+			</form>
 		</Dialog.Content>
 	</Dialog.Root>
 {/if}
