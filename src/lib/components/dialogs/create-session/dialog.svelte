@@ -87,7 +87,9 @@
 					toast.error('Please fix all errors in the form.');
 					return;
 				}
-				if (!ctx.connection) return;
+				if (!ctx.connection) {
+					throw new Error('Invalid connection to server!');
+				}
 				try {
 					const client = createClient<paths>({
 						baseUrl: `${location.protocol}//${ctx.connection.host}`
