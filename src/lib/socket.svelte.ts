@@ -51,12 +51,13 @@ export class UserInput {
 		});
 		this.sock.on('agent_answer', (req) => {
 			console.log('agent_answer', req);
-			this.requests[req.id].agentAnswer = req.answer;
+			const id = req.id;
+			this.requests[id] && (this.requests[id].agentAnswer = req.answer);
 		});
 	}
 
 	respond(id: string, value: string) {
-		this.requests[id].userQuestion = value;
+		this.requests[id] && (this.requests[id].userQuestion = value);
 		this.sock.emit('user_response', { id, value });
 	}
 }

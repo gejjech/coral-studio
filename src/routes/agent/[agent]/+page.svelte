@@ -5,7 +5,7 @@
 	import * as Accordion from '$lib/components/ui/accordion';
 	import { Separator } from '$lib/components/ui/separator';
 	import * as Sidebar from '$lib/components/ui/sidebar';
-	import { sessionCtx } from '$lib/threads';
+	import { idAsKey, sessionCtx } from '$lib/threads';
 	import { Button } from '$lib/components/ui/button';
 	import CaretRight from 'phosphor-icons-svelte/IconCaretRightRegular.svelte';
 	import ExternalLink from 'phosphor-icons-svelte/IconArrowsOutRegular.svelte';
@@ -19,7 +19,7 @@
 	let threads = $derived(conn?.threads ?? {});
 	let agents = $derived(conn?.agents ?? {});
 
-	let agentName = $derived(page.params['agent']);
+	let agentName = $derived(page.params['agent']!);
 	let agent = $derived(agents[agentName]);
 
 	let memberThreads = $derived(
@@ -41,7 +41,7 @@
 			</Breadcrumb.Item>
 			<Breadcrumb.Separator class="hidden md:block" />
 			<Breadcrumb.Item>
-				<Breadcrumb.Page>{page.params['agent'] ?? ''} {agent?.agentType ?? ''}</Breadcrumb.Page>
+				<Breadcrumb.Page>{page.params['agent'] ?? ''} {agent?.id ?? ''}</Breadcrumb.Page>
 			</Breadcrumb.Item>
 		</Breadcrumb.List>
 	</Breadcrumb.Root>

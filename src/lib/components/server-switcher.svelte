@@ -37,40 +37,57 @@
 	});
 
 	let dialogOpen = $state(false);
-	let testSuccess: boolean | null = $state(null);
+	let testState: 'success' | 'fail' | 'outdated' | null = $state(null);
 	let testing = $state(false);
 
 	let host = $state('127.0.0.1:5555');
+	let hostSanitized = $derived(host.replace(/^https?:\/\//, ''));
+
+	const checkForOld = async () => {
+		const isOld = await fetch(`${location.protocol}//${hostSanitized}/api/v1/registry`)
+			.then((res) => res.status === 200)
+			.catch((_) => false);
+		if (isOld) {
+			testState = 'outdated';
+		}
+	};
 
 	const debouncedTest = useDebounce(async () => {
-		testSuccess = null;
+		testState = null;
 		testing = true;
 		try {
 			const client = createClient<paths>({
-				baseUrl: `${location.protocol}//${host}`
+				baseUrl: `${location.protocol}//${hostSanitized}`
 			});
 			const res = await client.GET('/api/v1/agents');
 			await tick();
-			testSuccess = res.response.status === 200;
-			if (res.status === 200) {
-				testSuccess = null;
-				servers.current.push(host);
-				selected.current = host;
-				dialogOpen = false;
-				host = '';
-				toast.success('Server added successfully');
+			testState = res.response.status === 200 ? 'success' : 'fail';
+			if (testState === 'success') {
+				pushServerAndClose();
+			} else {
+				await checkForOld();
 			}
 		} catch {
 			await tick();
-			testSuccess = false;
+			testState = 'fail';
+			await checkForOld();
 		}
 		testing = false;
 	}, 250);
 
 	const testConnection = () => {
-		testSuccess = null;
+		testState = null;
 		testing = true;
 		debouncedTest();
+	};
+
+	const pushServerAndClose = () => {
+		servers.current.push(hostSanitized);
+		selected.current = hostSanitized;
+		dialogOpen = false;
+		testState = null;
+		host = '';
+		toast.success('Server added to list.');
 	};
 
 	$effect(() => {
@@ -153,24 +170,28 @@
 			</section>
 		</form>
 		<Dialog.Footer class="items-center">
-			{#if testSuccess === false}
-				<p class="text-destructive text-sm" transition:fade>Connection failed, add anyway?</p>
+			{#if testState !== 'success' && testState !== null}
+				<p class="text-destructive text-sm" transition:fade>
+					{#if testState === 'outdated'}
+						This server is outdated. See <a
+							class="hover:text-background hover:bg-destructive underline"
+							href="https://github.com/Coral-Protocol/coral-server/#readme">coral-server's README</a
+						> for help using the latest version.
+					{:else}
+						Connection failed, add anyway?{/if}
+				</p>
 				<Button
+					variant="outline"
 					onclick={() => {
-						testSuccess = null;
-						servers.current.push(host);
-						selected.current = host;
-						dialogOpen = false;
-						host = '';
-						toast.success('Server added successfully');
-					}}>Add</Button
+						pushServerAndClose();
+					}}>Add Anyway</Button
 				>
 			{/if}
 			<Button
 				disabled={testing}
 				onclick={(e) => {
 					e.preventDefault();
-					testSuccess = null;
+					testState = null;
 					testing = true;
 					testConnection();
 				}}>Connect</Button

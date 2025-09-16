@@ -71,13 +71,7 @@
 			error = null;
 			sessCtx.registry = null;
 			const agents = (await client.GET('/api/v1/agents')).data!;
-
-			sessCtx.registry = Object.fromEntries(
-				agents.map((agent) => [`${agent.id.name}:${agent.id.version}`, agent])
-			);
-			console.log(agents);
-			console.log(sessCtx.registry);
-
+			sessCtx.registry = agents;
 			sessCtx.sessions = (await client.GET('/api/v1/sessions')).data!;
 
 			connecting = false;
@@ -109,7 +103,9 @@
 	}
 </script>
 
-<CreateSession bind:open={createSessionOpen} registry={sessCtx.registry ?? {}} />
+
+<CreateSession bind:open={createSessionOpen} registry={sessCtx.registry ?? []} />
+
 <Tour
 	open={tourOpen}
 	items={[
