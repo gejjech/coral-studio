@@ -373,8 +373,7 @@
 														bind:selected={
 															() => ({ key: runtime, label: runtime, value: runtime }),
 															(selected) => {
-																$formData.agents[selectedAgent!]!.provider.runtime =
-																	selected as any;
+																$formData.agents[selectedAgent!]!.provider.runtime = selected.value;
 															}
 														}
 													/>
