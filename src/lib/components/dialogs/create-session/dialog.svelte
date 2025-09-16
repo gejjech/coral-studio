@@ -383,11 +383,7 @@
 										</Form.ElementField>
 										<Separator />
 										{#each Object.entries(availableOptions) as [name, opt] (name)}
-											<Form.ElementField
-												class
-												{form}
-												name="agents[{selectedAgent}].options.{name}.value"
-											>
+											<Form.ElementField {form} name="agents[{selectedAgent}].options.{name}.value">
 												<Form.Control>
 													{#snippet children({ props })}
 														<TooltipLabel tooltip={opt.description} class="gap-1">
@@ -513,8 +509,14 @@
 							>
 						</ul>
 					</Tabs.Content>
-					<Tabs.Content value="export">
-						<CodeBlock text={JSON.stringify(asJson, null, 2)} class="" language="json" />
+					<Tabs.Content value="export" class="flex min-h-0 flex-col">
+						<CodeBlock
+							text={JSON.stringify(asJson, null, 2)}
+							orientation="both"
+							class="whitespace-pre-wrap"
+							containerClass="h-full"
+							language="json"
+						/>
 					</Tabs.Content>
 				</form>
 			</Tabs.Root>
