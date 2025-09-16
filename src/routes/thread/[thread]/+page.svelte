@@ -17,8 +17,8 @@
 
 	let ctx = sessionCtx.get();
 	let conn = $derived(ctx.session);
-	let thread = $derived(conn?.threads[page.params['thread']]);
-	let messages = $derived(conn?.messages[page.params['thread']]);
+	let thread = $derived(conn?.threads[page.params['thread']!]);
+	let messages = $derived(conn?.messages[page.params['thread']!]);
 
 	let memberListOpen = $state(true);
 
@@ -39,18 +39,18 @@
 			</Breadcrumb.Item>
 		</Breadcrumb.List>
 	</Breadcrumb.Root>
-			<Button
-				variant="ghost"
-				size="icon"
-				onclick={() => {
-					memberListOpen = !memberListOpen;
-				}}
-			>
-				<Users />
-			</Button>
-		</header>
-		{#if thread !== undefined && messages !== undefined}
-			<ThreadView {thread} {messages} {memberListOpen} />
-		{:else}
-			<p class="text-muted-foreground mt-4 text-center text-sm">Thread not found.</p>
-		{/if}
+	<Button
+		variant="ghost"
+		size="icon"
+		onclick={() => {
+			memberListOpen = !memberListOpen;
+		}}
+	>
+		<Users />
+	</Button>
+</header>
+{#if thread !== undefined && messages !== undefined}
+	<ThreadView {thread} {messages} {memberListOpen} />
+{:else}
+	<p class="text-muted-foreground mt-4 text-center text-sm">Thread not found.</p>
+{/if}

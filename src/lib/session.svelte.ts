@@ -79,14 +79,14 @@ export class Session {
 					}
 					break;
 				case 'agent_list':
-					for (const agent of data.agents) {
+					for (const agent of data.sessionAgents) {
 						this.agents[agent.id] = agent;
 					}
 					break;
 				case 'session':
 					switch (data.event.type) {
 						case 'agent_state_updated':
-							this.agents[data.event.agent_id]!.state = data.event.state;
+							this.agents[data.event.agentId]!.state = data.event.state;
 							break;
 						case 'thread_created':
 							console.log('new thread');
@@ -95,18 +95,18 @@ export class Session {
 								name: data.event.name,
 								participants: data.event.participants,
 								summary: data.event.summary,
-								creator_id: data.event.creator_id,
-								is_closed: false,
+								creatorId: data.event.creatorId,
+								isClosed: false,
 								messages: undefined,
 								unread: 0
 							};
 							this.messages[data.event.id] = [];
 							break;
 						case 'message_sent':
-							if (data.event.thread_id in this.messages) {
+							if (data.event.threadId in this.messages) {
 								console.log('message setn');
-								this.messages[data.event.thread_id]!.push(data.event.message);
-								this.threads[data.event.thread_id]!.unread += 1;
+								this.messages[data.event.threadId]!.push(data.event.message);
+								this.threads[data.event.threadId]!.unread += 1;
 							} else {
 								console.warn('uh oh', { data: data, messages: this.messages });
 							}

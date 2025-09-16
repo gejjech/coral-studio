@@ -3,12 +3,21 @@
 	import Button from './ui/button/button.svelte';
 	import { cn } from '$lib/utils';
 	import ScrollArea from './ui/scroll-area/scroll-area.svelte';
+	import type { ComponentProps } from 'svelte';
 
 	const {
 		text = '',
 		class: className,
+		containerClass,
+		orientation = 'vertical',
 		language
-	}: { text?: string; class?: string; language?: 'json' } = $props();
+	}: {
+		text?: string;
+		class?: string;
+		containerClass?: string;
+		orientation?: ComponentProps<typeof ScrollArea>['orientation'];
+		language?: 'json';
+	} = $props();
 	let copied = $state(false);
 
 	const colorize: { [L in NonNullable<typeof language>]: (text: string) => string } = {
@@ -34,8 +43,13 @@
 	};
 </script>
 
-<section class="group bg-secondary relative overflow-clip rounded-md p-1 pt-0 dark:bg-black/30">
-	<ScrollArea orientation="horizontal" class="group relative size-full ">
+<section
+	class={cn(
+		'group bg-secondary relative overflow-clip rounded-md p-1 pt-0 dark:bg-black/30',
+		containerClass
+	)}
+>
+	<ScrollArea {orientation} class="group relative size-full ">
 		<code class={cn(className, language, 'relative inline-block w-full px-2 py-3 ')}>
 			{#if language}
 				{@html colorize[language](text)}
