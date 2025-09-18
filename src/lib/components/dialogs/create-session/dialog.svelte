@@ -172,7 +172,16 @@
 					>;
 				}),
 				customTools: Object.fromEntries(
-					Array.from(usedTools).map((tool) => [tool, tools[tool]])
+					Array.from(usedTools).map((tool) => {
+                        let toolBody = tools[tool];
+                        return [tool, {
+                            ...toolBody,
+                            transport: {
+                                ...toolBody.transport,
+                                url: `${window.location.origin}${toolBody.transport.url}`,
+                            }
+                        }]
+                    })
 				) as any, // FIXME: !!!
 				groups: $formData.groups
 			}
