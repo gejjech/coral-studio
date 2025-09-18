@@ -113,6 +113,14 @@ export class Session {
 							break;
 					}
 					break;
+				case undefined:
+				case null:
+					toast.error('WS with empty message type! Please report this to the team.');
+					console.error('ws type == null', { data });
+					break;
+				default:
+					console.warn('WS data type an expected value', { data });
+					break;
 			}
 		};
 	}
