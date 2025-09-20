@@ -1,6 +1,3 @@
-<script lang="ts" module>
-</script>
-
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
@@ -9,11 +6,14 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Textarea } from '$lib/components/ui/textarea/index.js';
 	import { toast } from 'svelte-sonner';
-	import { Button } from '$lib/components/ui/button';
+	import { Button, type ButtonSize, type ButtonVariant } from '$lib/components/ui/button';
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
 
 	import ChevronDown from 'phosphor-icons-svelte/IconCaretDownRegular.svelte';
+	import CaretUpDown from 'phosphor-icons-svelte/IconCaretUpDownRegular.svelte';
 	import MoonIcon from 'phosphor-icons-svelte/IconMoonRegular.svelte';
+	import EyeOpen from 'phosphor-icons-svelte/IconEyeRegular.svelte';
+	import EyeClosed from 'phosphor-icons-svelte/IconEyeClosedRegular.svelte';
 	import SunIcon from 'phosphor-icons-svelte/IconSunRegular.svelte';
 	import IconArrowsClockwise from 'phosphor-icons-svelte/IconArrowsClockwiseRegular.svelte';
 	import IconChats from 'phosphor-icons-svelte/IconChatsRegular.svelte';
@@ -21,6 +21,11 @@
 	import IconToolbox from 'phosphor-icons-svelte/IconToolboxRegular.svelte';
 	import IconPackage from 'phosphor-icons-svelte/IconPackageRegular.svelte';
 	import IconNotepad from 'phosphor-icons-svelte/IconNotepadRegular.svelte';
+	import CheckIcon from '@lucide/svelte/icons/check';
+	import ChevronsUpDownIcon from '@lucide/svelte/icons/chevrons-up-down';
+	import { tick } from 'svelte';
+	import * as Command from '$lib/components/ui/command/index.js';
+	import * as Popover from '$lib/components/ui/popover/index.js';
 
 	import { cn } from '$lib/utils';
 	import { sessionCtx } from '$lib/threads';
@@ -101,8 +106,43 @@
 			feedbackVisible = false;
 		}
 	}
-</script>
 
+	const frameworks = [
+		{
+			value: 'sveltekit',
+			label: 'SvelteKit'
+		},
+		{
+			value: 'next.js',
+			label: 'Next.js'
+		},
+		{
+			value: 'nuxt.js',
+			label: 'Nuxt.js'
+		},
+		{
+			value: 'remix',
+			label: 'Remix'
+		},
+		{
+			value: 'astro',
+			label: 'Astro'
+		}
+	];
+
+	let open = $state(false);
+	let value = $state('');
+	let triggerRef = $state<HTMLButtonElement>(null!);
+
+	const selectedValue = $derived(frameworks.find((f) => f.value === value)?.label);
+
+	function closeAndFocusTrigger() {
+		open = false;
+		tick().then(() => {
+			triggerRef.focus();
+		});
+	}
+</script>
 
 <CreateSession bind:open={createSessionOpen} registry={sessCtx.registry ?? []} />
 
@@ -135,7 +175,7 @@
 			}}
 		/>
 	</Sidebar.Header>
-	<Sidebar.Content class="gap-0">
+	<Sidebar.Content class="gap-0 overflow-hidden">
 		<Sidebar.Group>
 			<Sidebar.GroupLabel class="text-sidebar-foreground flex flex-row gap-1 pr-0 text-sm">
 				<span class="text-muted-foreground font-sans font-medium tracking-wide select-none"
@@ -177,16 +217,70 @@
 				</Sidebar.Menu>
 			</Sidebar.GroupContent>
 		</Sidebar.Group>
-		<Sidebar.Separator />
-		<Sidebar.Group>
+		<Sidebar.Separator class="sticky top-0" />
+		<Sidebar.Group class="overflow-x-hidden overflow-y-scroll">
 			<Sidebar.GroupLabel class="text-muted-foreground">Session</Sidebar.GroupLabel>
-			<DropdownMenu.Root>
+			<Popover.Root bind:open>
+				<Popover.Trigger
+					class="bg-sidebar ring-offset-background aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive m-[0.5px] mb-1 grow justify-between border-none shadow-none aria-invalid:ring"
+					bind:ref={sessionSwitcher}
+					aria-invalid={sessCtx.session === null || !sessCtx.session.connected}
+				>
+					{#snippet child({ props })}
+						<Button
+							variant="outline"
+							class="w-[200px] justify-between"
+							{...props}
+							role="combobox"
+							aria-expanded={open}
+						>
+							{sessCtx.session && sessCtx.session.connected
+								? sessCtx.session.session
+								: 'Select Session'}
+							<CaretUpDown />
+						</Button>
+					{/snippet}
+				</Popover.Trigger>
+				<Popover.Content align="center" class="w-[23em]">
+					<Command.Root>
+						<Command.Input placeholder="Search" />
+						<Command.List>
+							<Command.Empty>No sessions found.</Command.Empty>
+							<Command.Group>
+								{#if sessCtx.sessions && sessCtx.sessions.length > 0}
+									{#each sessCtx.sessions as session}
+										<Command.Item
+											onSelect={() => {
+												value = session;
+												closeAndFocusTrigger();
+												if (!sessCtx.connection) return;
+												sessCtx.session = new Session({ ...sessCtx.connection, session });
+											}}
+										>
+											{session}
+										</Command.Item>
+									{/each}
+									<Command.Separator class="my-1" />
+									<Command.Item
+										onclick={() => {
+											createSessionOpen = true;
+										}}
+										class=""
+									>
+										<span>New session</span>
+									</Command.Item>
+								{/if}
+							</Command.Group>
+						</Command.List>
+					</Command.Root>
+				</Popover.Content>
+			</Popover.Root>
+
+			<!-- <DropdownMenu.Root>
 				<DropdownMenu.Trigger>
 					{#snippet child({ props })}
 						<Sidebar.MenuButton
 							{...props}
-							bind:ref={sessionSwitcher}
-							aria-invalid={sessCtx.session === null || !sessCtx.session.connected}
 							class="border-input ring-offset-background aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive m-[0.5px] mb-1 aria-invalid:ring"
 						>
 							<span class="truncate"
@@ -194,14 +288,16 @@
 									? sessCtx.session.session
 									: 'Select Session'}</span
 							>
-							<ChevronDown class="ml-auto" />
+							<CaretUpDown class="ml-auto" />
 						</Sidebar.MenuButton>
 					{/snippet}
 				</DropdownMenu.Trigger>
-				<DropdownMenu.Content class="w-(--bits-dropdown-menu-anchor-width)">
+
+				<DropdownMenu.Content class="w-(--bits-dropdown-menu-anchor-width) ">
 					{#if sessCtx.sessions && sessCtx.sessions.length > 0}
 						{#each sessCtx.sessions as session}
 							<DropdownMenu.Item
+								class="flex justify-between"
 								onSelect={() => {
 									if (!sessCtx.connection) return;
 									sessCtx.session = new Session({ ...sessCtx.connection, session });
@@ -220,7 +316,7 @@
 						<span>New session</span>
 					</DropdownMenu.Item>
 				</DropdownMenu.Content>
-			</DropdownMenu.Root>
+			</DropdownMenu.Root> -->
 			<NavBundle
 				items={[
 					{
@@ -269,11 +365,17 @@
 			onsubmit={handleSubmit}
 			class="mt-auto {feedbackVisible
 				? 'opacity-100'
-				: 'opacity-0 select-none'} align-bottom transition-opacity duration-75"
+				: 'hidden opacity-0 select-none'} absolute bottom-20 left-0 mx-auto px-2 align-bottom transition-opacity duration-75"
 		>
 			<Card.Root>
-				<Card.Header>
+				<Card.Header class="flex items-baseline justify-between">
 					<Card.Title>Submit feedback</Card.Title>
+					<Button
+						variant="outline"
+						onclick={() => {
+							feedbackVisible = false;
+						}}>Close</Button
+					>
 				</Card.Header>
 				<Card.Content class="flex flex-col gap-2">
 					<p class="text-muted-foreground text-xs">
