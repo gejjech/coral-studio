@@ -258,7 +258,5 @@
 				</Tabs.Root>
 			</Dialog.Content>
 		</Dialog.Root>
-	{:else}
-		<p>no data</p>
 	{/if}
 {/await}
