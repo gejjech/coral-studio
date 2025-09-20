@@ -275,48 +275,6 @@
 					</Command.Root>
 				</Popover.Content>
 			</Popover.Root>
-
-			<!-- <DropdownMenu.Root>
-				<DropdownMenu.Trigger>
-					{#snippet child({ props })}
-						<Sidebar.MenuButton
-							{...props}
-							class="border-input ring-offset-background aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive m-[0.5px] mb-1 aria-invalid:ring"
-						>
-							<span class="truncate"
-								>{sessCtx.session && sessCtx.session.connected
-									? sessCtx.session.session
-									: 'Select Session'}</span
-							>
-							<CaretUpDown class="ml-auto" />
-						</Sidebar.MenuButton>
-					{/snippet}
-				</DropdownMenu.Trigger>
-
-				<DropdownMenu.Content class="w-(--bits-dropdown-menu-anchor-width) ">
-					{#if sessCtx.sessions && sessCtx.sessions.length > 0}
-						{#each sessCtx.sessions as session}
-							<DropdownMenu.Item
-								class="flex justify-between"
-								onSelect={() => {
-									if (!sessCtx.connection) return;
-									sessCtx.session = new Session({ ...sessCtx.connection, session });
-								}}
-							>
-								<span class="truncate">{session}</span>
-							</DropdownMenu.Item>
-						{/each}
-						<DropdownMenu.Separator />
-					{/if}
-					<DropdownMenu.Item
-						onclick={() => {
-							createSessionOpen = true;
-						}}
-					>
-						<span>New session</span>
-					</DropdownMenu.Item>
-				</DropdownMenu.Content>
-			</DropdownMenu.Root> -->
 			<NavBundle
 				items={[
 					{
