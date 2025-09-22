@@ -135,14 +135,14 @@
 		}
 	];
 
-	let open = $state(false);
+	let sessionSearcherOpen = $state(false);
 	let value = $state('');
 	let triggerRef = $state<HTMLButtonElement>(null!);
 
 	const selectedValue = $derived(frameworks.find((f) => f.value === value)?.label);
 
 	function closeAndFocusTrigger() {
-		open = false;
+		sessionSearcherOpen = false;
 		tick().then(() => {
 			triggerRef.focus();
 		});
@@ -225,20 +225,19 @@
 		<Sidebar.Separator class="sticky top-0" />
 		<Sidebar.Group class="overflow-x-hidden overflow-y-scroll">
 			<Sidebar.GroupLabel class="text-muted-foreground">Session</Sidebar.GroupLabel>
-			<div class="flex w-full items-center gap-2">
-				<Popover.Root bind:open>
+			<div class="flex max-w-[23rem] justify-between gap-2">
+				<Popover.Root bind:open={sessionSearcherOpen}>
 					<Popover.Trigger
-						class="bg-sidebar ring-offset-background aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive  m-0 grow justify-between border-none shadow-none aria-invalid:ring"
+						class="bg-sidebar ring-offset-background aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive  flex-1 grow justify-between truncate border-none shadow-none aria-invalid:ring "
 						bind:ref={sessionSwitcher}
 						aria-invalid={sessCtx.session === null || !sessCtx.session.connected}
 					>
 						{#snippet child({ props })}
 							<Button
 								variant="outline"
-								class="w-[200px] justify-between"
 								{...props}
 								role="combobox"
-								aria-expanded={open}
+								aria-expanded={sessionSearcherOpen}
 							>
 								{sessCtx.session && sessCtx.session.connected
 									? sessCtx.session.session
@@ -247,13 +246,24 @@
 							</Button>
 						{/snippet}
 					</Popover.Trigger>
-					<Popover.Content align="center" class="w-[23em]">
+					<Popover.Content align="center" class="w-[20em]">
 						<Command.Root>
 							<Command.Input placeholder="Search" />
 							<Command.List>
-								<Command.Empty>No sessions found</Command.Empty>
-								<Command.Group>
-									{#if sessCtx.sessions && sessCtx.sessions.length > 0}
+								<Command.Empty
+									>No sessions found {#if sessCtx.sessions && sessCtx.sessions.length === 0}
+										<Button
+											variant="link"
+											class="w-fit cursor-pointer"
+											onclick={() => {
+												createSessionOpen = true;
+												sessionSearcherOpen = false;
+											}}>Create one</Button
+										>
+									{/if}</Command.Empty
+								>
+								{#if sessCtx.sessions && sessCtx.sessions.length > 0}
+									<Command.Group>
 										{#each sessCtx.sessions as session}
 											<Command.Item
 												onSelect={() => {
@@ -266,8 +276,8 @@
 												{session}
 											</Command.Item>
 										{/each}
-									{/if}
-								</Command.Group>
+									</Command.Group>
+								{/if}
 							</Command.List>
 						</Command.Root>
 					</Popover.Content>
@@ -277,6 +287,7 @@
 						<Tooltip.Trigger
 							onclick={() => {
 								createSessionOpen = true;
+								sessionSearcherOpen = false;
 							}}
 							class="button p-0 {buttonVariants({ variant: 'outline' })} aspect-square"
 						>
