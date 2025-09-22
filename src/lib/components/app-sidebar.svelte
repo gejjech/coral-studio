@@ -228,7 +228,7 @@
 			<div class="flex w-full items-center gap-2">
 				<Popover.Root bind:open>
 					<Popover.Trigger
-						class="bg-sidebar ring-offset-background aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive m-[0.5px] mb-1 grow justify-between border-none shadow-none aria-invalid:ring"
+						class="bg-sidebar ring-offset-background aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive  m-0 grow justify-between border-none shadow-none aria-invalid:ring"
 						bind:ref={sessionSwitcher}
 						aria-invalid={sessCtx.session === null || !sessCtx.session.connected}
 					>
