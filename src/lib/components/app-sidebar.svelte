@@ -117,16 +117,13 @@
 	let value = $state('');
 	let triggerRef = $state<HTMLButtonElement>(null!);
 
-	const selectedValue = $derived(frameworks.find((f) => f.value === value)?.label);
-
 	function closeAndFocusTrigger() {
 		sessionSearcherOpen = false;
 		tick().then(() => {
 			triggerRef.focus();
 		});
 	}
-</script>
-
+	// todo: refactor below into one object
 	let agents = $derived(
 		conn
 			? Object.entries(conn.agents).map(([title, agent]) => ({
@@ -168,6 +165,7 @@
 		}
 	]}
 />
+
 <Sidebar.Root>
 	<Sidebar.Header>
 		<ServerSwitcher
@@ -185,12 +183,12 @@
 	<Sidebar.Content class="gap-0 overflow-hidden">
 		<Sidebar.Group>
 			<Sidebar.GroupLabel class="text-sidebar-foreground flex flex-row gap-1 pr-0 text-sm">
-				<span class="text-muted-foreground font-sans font-medium tracking-wide select-none"
+				<span class="text-muted-foreground grow font-sans font-medium tracking-wide select-none"
 					>Server</span
 				>
-				<Tooltip.Provider>
+				<Tooltip.Provider delayDuration={0}>
 					<Tooltip.Root>
-						<Tooltip.Trigger disabled={error === null} class="flex-grow text-right ">
+						<Tooltip.Trigger disabled={error === null}>
 							<span
 								class={cn(
 									'text-muted-foreground font-mono text-xs font-normal',
