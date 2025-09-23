@@ -11,6 +11,7 @@
 	import { toast } from 'svelte-sonner';
 	import { Button } from '$lib/components/ui/button';
 	import { ScrollArea } from '$lib/components/ui/scroll-area/index.js';
+	import Quickswitch from '$lib/components/dialogs/quickswitch.svelte';
 
 	import ChevronDown from 'phosphor-icons-svelte/IconCaretDownRegular.svelte';
 	import MoonIcon from 'phosphor-icons-svelte/IconMoonRegular.svelte';
@@ -101,8 +102,30 @@
 			feedbackVisible = false;
 		}
 	}
+
+	let agents = $derived(
+		conn
+			? Object.entries(conn.agents).map(([title, agent]) => ({
+					title,
+					url: `/agent/${title}`,
+					state: agent.state ?? 'disconnected'
+				}))
+			: []
+	);
+
+	let threads = $derived(
+		conn
+			? Object.values(conn.threads).map((thread) => ({
+					id: thread.id,
+					title: thread.name,
+					url: `/thread/${thread.id}`,
+					badge: thread.unread
+				}))
+			: []
+	);
 </script>
 
+<Quickswitch {sessCtx} {agents} {threads} />
 
 <CreateSession bind:open={createSessionOpen} registry={sessCtx.registry ?? []} />
 
