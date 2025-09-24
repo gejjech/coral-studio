@@ -37,7 +37,8 @@ const toolCalls: {
 			agentId,
 			agentRequest: body?.message as string,
 			userQuestion: undefined,
-			agentAnswer: undefined
+			agentAnswer: undefined,
+			timestamp: Date.now()
 		};
 
 		questions[`${sessionId}-${agentId}`] = q;

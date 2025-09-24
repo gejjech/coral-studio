@@ -9,6 +9,9 @@
 
 	import { socketCtx } from '$lib/socket.svelte';
 	import { Button } from '$lib/components/ui/button';
+	import IconArrow from 'phosphor-icons-svelte/IconArrowRightRegular.svelte';
+
+	//warning the below ts is a bit of classic ai slop that i will clean up later but for now it works
 
 	// Type definitions
 	interface Request {
@@ -259,39 +262,14 @@
 				<Card.Content class="flex-1 overflow-y-auto">
 					<ol class="flex flex-col gap-4 p-4">
 						{#each selectedAgentMessages as request (request.id)}
-							<li class="flex flex-col gap-2">
+							<li
+								class="border-card flex flex-col gap-2 border-l-2 p-4 transition-colors {request.id ===
+								currentPendingRequest?.id
+									? 'bg-primary border-primary-foreground '
+									: ' '}"
+							>
 								<!-- Agent Request -->
-								<div class="flex gap-4">
-									<div
-										class="flex h-8 min-w-8 items-center justify-center rounded-md"
-										style="background-color: {stringToColor(request.agentId)}"
-									>
-										<IconRobot class="size-4 text-white" />
-									</div>
-									<div class="bg-input min-h-8 max-w-[70%] rounded-md p-2">
-										<p class="text-sm">{request.agentRequest}</p>
-										<span class="text-muted-foreground text-xs">
-											{formatTimestamp(request.timestamp)}
-										</span>
-									</div>
-								</div>
-
-								<!-- User Response (if exists) -->
-								{#if request.userQuestion}
-									<div class="flex justify-end gap-4">
-										<div
-											class="bg-primary text-primary-foreground min-h-8 max-w-[70%] rounded-md p-2"
-										>
-											<p class="text-sm">{request.userQuestion}</p>
-										</div>
-										<div class="bg-muted flex h-8 min-w-8 items-center justify-center rounded-full">
-											<span class="text-xs">You</span>
-										</div>
-									</div>
-								{/if}
-
-								<!-- Agent Answer (if exists) -->
-								{#if request.agentAnswer}
+								<button onclick={() => (currentPendingRequest = request)}>
 									<div class="flex gap-4">
 										<div
 											class="flex h-8 min-w-8 items-center justify-center rounded-md"
@@ -299,9 +277,68 @@
 										>
 											<IconRobot class="size-4 text-white" />
 										</div>
-										<div class="bg-muted min-h-8 max-w-[70%] rounded-md p-2">
-											<p class="text-sm">{request.agentAnswer}</p>
+										<div class="bg-input min-h-8 max-w-[70%] rounded-md p-2">
+											<p class="text-sm">{request.agentRequest}</p>
+											<span class="text-muted-foreground text-xs">
+												{formatTimestamp(request.timestamp)}
+											</span>
 										</div>
+										<div class="my-auto flex flex-col">
+											<span
+												class="text-muted-foreground text-xs {request.id ===
+												currentPendingRequest?.id
+													? ''
+													: ' hidden'}">Responding to</span
+											>
+											<IconArrow
+												class="mt-2 rotate-180 {request.id === currentPendingRequest?.id
+													? 'animate-pulse'
+													: ' hidden'}"
+											/>
+										</div>
+									</div>
+
+									<!-- User Response (if exists) -->
+									{#if request.userQuestion}
+										<div class="flex justify-end gap-4">
+											<div
+												class="bg-input text-primary-foreground min-h-8 max-w-[70%] rounded-md p-2"
+											>
+												<p class="text-sm">{request.userQuestion}</p>
+											</div>
+											<div
+												class="bg-input flex h-8 min-w-8 items-center justify-center rounded-full"
+											>
+												<span class="text-xs">You</span>
+											</div>
+										</div>
+									{/if}
+
+									<!-- Agent Answer (if exists) -->
+									{#if request.agentAnswer}
+										<div class="flex gap-4">
+											<div
+												class="flex h-8 min-w-8 items-center justify-center rounded-md"
+												style="background-color: {stringToColor(request.agentId)}"
+											>
+												<IconRobot class="size-4 text-white" />
+											</div>
+											<div class="bg-muted min-h-8 max-w-[70%] rounded-md p-2">
+												<p class="text-sm">{request.agentAnswer}</p>
+											</div>
+										</div>
+									{/if}
+								</button>
+
+								{#if currentPendingRequest && request.id === currentPendingRequest.id}
+									<div class="flex flex-shrink-0 gap-2 p-4">
+										<Input
+											bind:value={userQuestions[currentPendingRequest.id]}
+											placeholder="Enter your reply..."
+											class="w-full grow"
+											onkeydown={handleKeydown}
+										/>
+										<Button onclick={sendResponse}>Send</Button>
 									</div>
 								{/if}
 							</li>
@@ -310,17 +347,6 @@
 				</Card.Content>
 
 				<!-- Input Footer (only show if there's a pending request) -->
-				{#if currentPendingRequest}
-					<Card.Footer class="flex flex-shrink-0 gap-2 p-4">
-						<Input
-							bind:value={userQuestions[currentPendingRequest.id]}
-							placeholder="Enter your reply..."
-							class="w-full grow"
-							onkeydown={handleKeydown}
-						/>
-						<Button onclick={sendResponse}>Send</Button>
-					</Card.Footer>
-				{/if}
 			</Card.Root>
 		{:else}
 			<Card.Root class="flex h-full items-center justify-center">
