@@ -50,7 +50,7 @@
 	</Breadcrumb.Root>
 </header>
 <section class="grid h-full grid-cols-2 gap-3 p-4 md:grid-cols-3 lg:grid-cols-4">
-	{#each requests as request}
+	<!-- {#each requests as request}
 		<Card.Root>
 			<Card.Header>
 				<h2 class="text-muted-foreground text-sm">{request.sessionId}</h2>
@@ -71,7 +71,7 @@
 				<p>{request.agentAnswer}</p>
 			</Card.Content>
 		</Card.Root>
-	{/each}
+	{/each} -->
 	<section class="flex h-full w-full flex-col gap-4">
 		<nav class="flex w-full flex-col gap-2 p-1">
 			<h1 class="text-lg font-medium">{requests.length} Input requests</h1>
@@ -88,6 +88,7 @@
 					</p>
 				{/if}
 				{#each requests as request}
+					<!-- this needs to be grouped by agent id and ordered by timestampty666666666666666666666 -->
 					<div class="flex w-full items-center gap-2">
 						<div
 							class="h-12 min-w-12 justify-center rounded-md bg-[{stringToColor(request.agentId)}]"
@@ -97,7 +98,8 @@
 						<section class="flex w-full flex-col gap-1">
 							<span class="flex w-full">
 								<span class="grow">{request.agentId}</span>
-								<span class="w-fit">1 hour ago</span>
+								<span class="w-fit">{request.timestamp}</span>
+								<!-- needs a timestamp converter plus idk if this works at all -->
 							</span>
 							<p class="text-muted-foreground truncate">{request.agentRequest}</p>
 						</section>
