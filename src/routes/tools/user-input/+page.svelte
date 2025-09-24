@@ -263,10 +263,10 @@
 					<ol class="flex flex-col gap-4 p-4">
 						{#each selectedAgentMessages as request (request.id)}
 							<li
-								class="border-card flex flex-col gap-2 border-l-2 p-4 transition-colors {request.id ===
+								class="border-card flex flex-col gap-2 rounded-e-md border-l-2 p-4 transition-colors {request.id ===
 								currentPendingRequest?.id
 									? 'bg-primary border-primary-foreground '
-									: ' '}"
+									: 'hover:bg-primary rounded-s-md '}"
 							>
 								<!-- Agent Request -->
 								<button onclick={() => (currentPendingRequest = request)}>
@@ -277,7 +277,7 @@
 										>
 											<IconRobot class="size-4 text-white" />
 										</div>
-										<div class="bg-input min-h-8 max-w-[70%] rounded-md p-2">
+										<div class="bg-input min-h-8 max-w-[70%] rounded-md p-2 text-start">
 											<p class="text-sm">{request.agentRequest}</p>
 											<span class="text-muted-foreground text-xs">
 												{formatTimestamp(request.timestamp)}
@@ -286,12 +286,13 @@
 										<div class="my-auto flex flex-col">
 											<span
 												class="text-muted-foreground text-xs {request.id ===
-												currentPendingRequest?.id
+													currentPendingRequest?.id && !request.userQuestion
 													? ''
 													: ' hidden'}">Responding to</span
 											>
 											<IconArrow
-												class="mt-2 rotate-180 {request.id === currentPendingRequest?.id
+												class="mt-2 rotate-180 {request.id === currentPendingRequest?.id &&
+												!request.userQuestion
 													? 'animate-pulse'
 													: ' hidden'}"
 											/>
@@ -300,14 +301,14 @@
 
 									<!-- User Response (if exists) -->
 									{#if request.userQuestion}
-										<div class="flex justify-end gap-4">
+										<div class="flex items-start justify-end gap-4">
 											<div
 												class="bg-input text-primary-foreground min-h-8 max-w-[70%] rounded-md p-2"
 											>
 												<p class="text-sm">{request.userQuestion}</p>
 											</div>
 											<div
-												class="bg-input flex h-8 min-w-8 items-center justify-center rounded-full"
+												class="bg-input flex h-9 min-w-9 items-center justify-center rounded-full"
 											>
 												<span class="text-xs">You</span>
 											</div>
@@ -330,7 +331,7 @@
 									{/if}
 								</button>
 
-								{#if currentPendingRequest && request.id === currentPendingRequest.id}
+								{#if currentPendingRequest && request.id === currentPendingRequest.id && !request.userQuestion}
 									<div class="flex flex-shrink-0 gap-2 p-4">
 										<Input
 											bind:value={userQuestions[currentPendingRequest.id]}
