@@ -38,7 +38,11 @@ jobs:
           gc-max-store-size: 0
 
       - uses: imjasonh/setup-crane@v0.1
-      - run: |
+      - name: Login to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | crane auth login ghcr.io -u ${{ github.actor }} --password-stdin
+        if: github.ref == 'refs/heads/main'
+      - name: Build and push Docker image
+        run: |
           set -eu
 
           OCI_ARCHIVE=$(nix build --no-link --print-out-paths .#docker)
